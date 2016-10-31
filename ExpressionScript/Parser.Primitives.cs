@@ -39,6 +39,35 @@ namespace ExpressionScript
             return Char(x => '0' <= x && x <= '9');
         }
 
+        public static Parser<string> DecimalDigits()
+        {
+            return DecimalDigit().AtLeastOnce();
+        }
+
+        public static Parser<char> HexDigit()
+        {
+            return Char(x => '0' <= x && x <= '9' ||
+                             'A' <= x && x <= 'F' ||
+                             'a' <= x && x <= 'f');
+        }
+
+        public static Parser<string> HexDigits()
+        {
+            return HexDigit().AtLeastOnce();
+        }
+
+        public static Parser<TypeCode> IntegerTypeSuffix()
+        {
+            return Or(
+                Char(x => x == 'U' || x == 'u').SelectMany(s1 => Or(
+                    Char(x => x == 'L' || x == 'l').Select(s2 => TypeCode.UInt64),
+                    Return(TypeCode.UInt32))),
+                Char(x => x == 'L' || x == 'l').SelectMany(s1 => Or(
+                    Char(x => x == 'U' || x == 'u').Select(s2 => TypeCode.UInt64),
+                    Return(TypeCode.Int64))),
+                Return(TypeCode.Int32));
+        }
+
         public static Parser<string> String(string value)
         {
             if (value == string.Empty) return Return(string.Empty);
