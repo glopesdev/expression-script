@@ -18,6 +18,11 @@ namespace ExpressionScript
             return input => Enumerable.Empty<IResult<TValue>>();
         }
 
+        public static Parser<TValue> Defer<TValue>(Func<Parser<TValue>> parserFactory)
+        {
+            return input => parserFactory()(input);
+        }
+
         public static Parser<TValue> Where<TValue>(this Parser<TValue> parser, Func<TValue, bool> predicate)
         {
             return input => parser(input).Where(result => predicate(result.Value));
