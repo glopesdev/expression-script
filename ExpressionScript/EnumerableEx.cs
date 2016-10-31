@@ -21,6 +21,15 @@ namespace ExpressionScript
             }
         }
 
+        internal static IEnumerable<TValue> Do<TValue>(this IEnumerable<TValue> source, Action<TValue> onNext)
+        {
+            foreach (var value in source)
+            {
+                onNext(value);
+                yield return value;
+            }
+        }
+
         internal static IEnumerable<TValue> Concat<TValue>(TValue head, IEnumerable<TValue> tail)
         {
             yield return head;

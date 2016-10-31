@@ -23,6 +23,11 @@ namespace ExpressionScript
             return input => parserFactory()(input);
         }
 
+        public static Parser<TValue> Do<TValue>(this Parser<TValue> parser, Action<TValue> onNext)
+        {
+            return input => parser(input).Do(result => onNext(result.Value));
+        }
+
         public static Parser<TValue> Where<TValue>(this Parser<TValue> parser, Func<TValue, bool> predicate)
         {
             return input => parser(input).Where(result => predicate(result.Value));
