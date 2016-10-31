@@ -23,6 +23,26 @@ namespace ExpressionScript
             return Concat((IEnumerable<Parser<TValue>>)parsers);
         }
 
+        public static Parser<TValue> First<TValue>(this Parser<TValue> parser)
+        {
+            return input => parser(input).Take(1);
+        }
+
+        public static Parser<TValue> Or<TValue>(this Parser<TValue> first, Parser<TValue> second)
+        {
+            return First(first.Concat(second));
+        }
+
+        public static Parser<TValue> Or<TValue>(this IEnumerable<Parser<TValue>> parsers)
+        {
+            return First(parsers.Concat());
+        }
+
+        public static Parser<TValue> Or<TValue>(params Parser<TValue>[] parsers)
+        {
+            return Or((IEnumerable<Parser<TValue>>)parsers);
+        }
+
         public static Parser<IEnumerable<TValue>> Many<TValue>(this Parser<TValue> parser)
         {
             return (from x in parser
