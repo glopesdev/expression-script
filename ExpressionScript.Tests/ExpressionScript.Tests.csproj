@@ -50,8 +50,14 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
-    <Compile Include="ParserTests.cs" />
+    <Compile Include="ParserTests.Primitives.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ExpressionScript\ExpressionScript.csproj">
+      <Project>{e3930630-954a-4a75-83e8-cca6db6e8c2e}</Project>
+      <Name>ExpressionScript</Name>
+    </ProjectReference>
   </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">
