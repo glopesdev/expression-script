@@ -23,5 +23,32 @@ namespace ExpressionScript
             return input => input.Take(1)
                                  .Select(x => new Result<char>(x, input.Substring(1)));
         }
+
+        public static Parser<TValue> Where<TValue>(this Parser<TValue> parser, Func<TValue, bool> predicate)
+        {
+            return input => parser(input).Where(result => predicate(result.Value));
+        }
+
+        public static Parser<TResult> Select<TValue, TResult>(this Parser<TValue> parser, Func<TValue, TResult> selector)
+        {
+            return input => parser(input).Select(result => new Result<TResult>(selector(result.Value), result.Tail));
+        }
+
+        public static Parser<TResult> SelectMany<TValue, TResult>(this Parser<TValue> parser, Func<TValue, Parser<TResult>> parserSelector)
+        {
+            return input => parser(input).SelectMany(result => parserSelector(result.Value)(result.Tail));
+        }
+
+        public static Parser<TResult> SelectMany<TValue, TIntermediate, TResult>(
+            this Parser<TValue> parser,
+            Func<TValue, Parser<TIntermediate>> parserSelector,
+            Func<TValue, TIntermediate, TResult> resultSelector)
+        {
+            return input => parser(input).SelectMany(
+                   result => parserSelector(result.Value)(result.Tail).Select(
+                   iresult => new Result<TResult>(
+                       resultSelector(result.Value, iresult.Value),
+                       iresult.Tail)));
+        }
     }
 }
