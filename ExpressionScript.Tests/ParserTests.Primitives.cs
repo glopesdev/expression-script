@@ -4,7 +4,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace ExpressionScript.Tests
 {
-    [TestClass]
     public partial class ParserTests
     {
         const string CharInput = "abFb67";

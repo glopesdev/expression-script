@@ -28,5 +28,15 @@ namespace ExpressionScript
         {
             return Char(x => '0' <= x && x <= '9');
         }
+
+        public static Parser<string> String(string s)
+        {
+            if (s == string.Empty) return Return(string.Empty);
+            var x = s[0];
+            var xs = s.Substring(1);
+            return from rc in Char(x)
+                   from rs in String(xs)
+                   select rc + rs;
+        }
     }
 }
