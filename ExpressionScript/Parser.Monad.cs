@@ -18,12 +18,6 @@ namespace ExpressionScript
             return input => Enumerable.Empty<IResult<TValue>>();
         }
 
-        public static Parser<char> Char()
-        {
-            return input => input.Take(1)
-                                 .Select(x => new Result<char>(x, input.Substring(1)));
-        }
-
         public static Parser<TValue> Where<TValue>(this Parser<TValue> parser, Func<TValue, bool> predicate)
         {
             return input => parser(input).Where(result => predicate(result.Value));
