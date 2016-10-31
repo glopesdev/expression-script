@@ -1,0 +1,107 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ExpressionScript
+{
+    public static partial class Parser
+    {
+        public static Parser<TValue> Concat<TValue>(this Parser<TValue> first, Parser<TValue> second)
+        {
+            return input => first(input).Concat(second(input));
+        }
+
+        public static Parser<TValue> Concat<TValue>(this IEnumerable<Parser<TValue>> parsers)
+        {
+            return input => parsers.SelectMany(parser => parser(input));
+        }
+
+        public static Parser<TValue> Concat<TValue>(params Parser<TValue>[] parsers)
+        {
+            return Concat((IEnumerable<Parser<TValue>>)parsers);
+        }
+
+        public static Parser<IEnumerable<TValue>> Many<TValue>(this Parser<TValue> parser)
+        {
+            return (from x in parser
+                    from xs in Many(parser)
+                    select EnumerableEx.Concat(x, xs))
+                    .Concat(Return(Enumerable.Empty<TValue>()));
+        }
+
+        public static Parser<string> Many(this Parser<char> parser)
+        {
+            return (from x in parser
+                    from xs in Many(parser)
+                    select x + xs)
+                    .Concat(Return(string.Empty));
+        }
+
+        public static Parser<IEnumerable<TValue>> AtLeastOnce<TValue>(this Parser<TValue> parser)
+        {
+            return from x in parser
+                   from xs in Many(parser)
+                   select EnumerableEx.Concat(x, xs);
+        }
+
+        public static Parser<string> AtLeastOnce(this Parser<char> parser)
+        {
+            return from x in parser
+                   from xs in Many(parser)
+                   select x + xs;
+        }
+
+        public static Parser<IEnumerable<TValue>> AtLeastOnceSeparatedBy<TValue, TSeparator>(this Parser<TValue> parser, Parser<TSeparator> separator)
+        {
+            return from x in parser
+                   from xs in
+                       Many(from s in separator
+                            from y in parser
+                            select y)
+                   select EnumerableEx.Concat(x, xs);
+        }
+
+        public static Parser<IEnumerable<TValue>> ManySeparatedBy<TValue, TSeparator>(this Parser<TValue> parser, Parser<TSeparator> separator)
+        {
+            return parser.AtLeastOnceSeparatedBy(separator).Concat(Return(Enumerable.Empty<TValue>()));
+        }
+
+        public static Parser<TValue> BracketedBy<TValue, TOpen, TClose>(this Parser<TValue> parser, Parser<TOpen> open, Parser<TClose> close)
+        {
+            return from o in open
+                   from x in parser
+                   from c in close
+                   select x;
+        }
+
+        public static Parser<TValue> ChainLeft<TValue>(this Parser<TValue> parser, Parser<Func<TValue, TValue, TValue>> func)
+        {
+            var rest = default(Func<TValue, Parser<TValue>>);
+            rest = x => func.SelectMany(f =>
+                        parser.SelectMany(y => rest(f(x, y))))
+                        .Concat(Return(x));
+            return parser.SelectMany(rest);
+        }
+
+        public static Parser<TValue> ChainLeft<TValue>(this Parser<TValue> parser, Parser<Func<TValue, TValue, TValue>> func, TValue defaultValue)
+        {
+            return parser.ChainLeft(func).Concat(Return(defaultValue));
+        }
+
+        public static Parser<TValue> ChainRight<TValue>(this Parser<TValue> parser, Parser<Func<TValue, TValue, TValue>> func)
+        {
+            return parser.SelectMany(x =>
+                   (from f in func
+                    from y in parser.ChainRight(func)
+                    select f(x, y))
+                    .Concat(Return(x)));
+        }
+
+        public static Parser<TValue> ChainRight<TValue>(this Parser<TValue> parser, Parser<Func<TValue, TValue, TValue>> func, TValue defaultValue)
+        {
+            return parser.ChainRight(func).Concat(Return(defaultValue));
+        }
+    }
+}

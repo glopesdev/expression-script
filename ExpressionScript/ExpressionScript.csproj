@@ -40,10 +40,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="EnumerableEx.cs" />
-    <Compile Include="Parser.Primitives.cs" />
     <Compile Include="Result.cs" />
     <Compile Include="Parser.cs" />
     <Compile Include="Parser.Monad.cs" />
+    <Compile Include="Parser.Primitives.cs" />
+    <Compile Include="Parser.Repetition.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

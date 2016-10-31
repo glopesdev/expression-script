@@ -12,5 +12,14 @@ namespace ExpressionScript
         {
             yield return value;
         }
+
+        internal static IEnumerable<TValue> Concat<TValue>(TValue head, IEnumerable<TValue> tail)
+        {
+            yield return head;
+            foreach (var value in tail)
+            {
+                yield return value;
+            }
+        }
     }
 }
