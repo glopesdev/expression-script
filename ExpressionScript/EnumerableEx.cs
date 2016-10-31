@@ -13,6 +13,14 @@ namespace ExpressionScript
             yield return value;
         }
 
+        internal static IEnumerable<TValue> Defer<TValue>(Func<IEnumerable<TValue>> enumerableFactory)
+        {
+            foreach (var value in enumerableFactory())
+            {
+                yield return value;
+            }
+        }
+
         internal static IEnumerable<TValue> Concat<TValue>(TValue head, IEnumerable<TValue> tail)
         {
             yield return head;

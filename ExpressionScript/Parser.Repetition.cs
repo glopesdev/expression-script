@@ -10,7 +10,7 @@ namespace ExpressionScript
     {
         public static Parser<TValue> Concat<TValue>(this Parser<TValue> first, Parser<TValue> second)
         {
-            return input => first(input).Concat(second(input));
+            return input => first(input).Concat(EnumerableEx.Defer(() => second(input)));
         }
 
         public static Parser<TValue> Concat<TValue>(this IEnumerable<Parser<TValue>> parsers)
