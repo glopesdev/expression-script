@@ -48,7 +48,7 @@ namespace ExpressionScript
             return (from x in parser
                     from xs in Many(parser)
                     select EnumerableEx.Concat(x, xs))
-                    .Concat(Return(Enumerable.Empty<TValue>()));
+                    .Or(Return(Enumerable.Empty<TValue>()));
         }
 
         public static Parser<string> Many(this Parser<char> parser)
@@ -56,7 +56,7 @@ namespace ExpressionScript
             return (from x in parser
                     from xs in Many(parser)
                     select x + xs)
-                    .Concat(Return(string.Empty));
+                    .Or(Return(string.Empty));
         }
 
         public static Parser<IEnumerable<TValue>> AtLeastOnce<TValue>(this Parser<TValue> parser)
@@ -101,13 +101,13 @@ namespace ExpressionScript
             var rest = default(Func<TValue, Parser<TValue>>);
             rest = x => func.SelectMany(f =>
                         parser.SelectMany(y => rest(f(x, y))))
-                        .Concat(Return(x));
+                        .Or(Return(x));
             return parser.SelectMany(rest);
         }
 
         public static Parser<TValue> ChainLeft<TValue>(this Parser<TValue> parser, Parser<Func<TValue, TValue, TValue>> func, TValue defaultValue)
         {
-            return parser.ChainLeft(func).Concat(Return(defaultValue));
+            return parser.ChainLeft(func).Or(Return(defaultValue));
         }
 
         public static Parser<TValue> ChainRight<TValue>(this Parser<TValue> parser, Parser<Func<TValue, TValue, TValue>> func)
@@ -116,12 +116,12 @@ namespace ExpressionScript
                    (from f in func
                     from y in parser.ChainRight(func)
                     select f(x, y))
-                    .Concat(Return(x)));
+                    .Or(Return(x)));
         }
 
         public static Parser<TValue> ChainRight<TValue>(this Parser<TValue> parser, Parser<Func<TValue, TValue, TValue>> func, TValue defaultValue)
         {
-            return parser.ChainRight(func).Concat(Return(defaultValue));
+            return parser.ChainRight(func).Or(Return(defaultValue));
         }
     }
 }
