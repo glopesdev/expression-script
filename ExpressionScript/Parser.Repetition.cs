@@ -8,6 +8,11 @@ namespace ExpressionScript
 {
     public static partial class Parser
     {
+        public static Parser<TValue> Optional<TValue>(this Parser<TValue> parser, TValue defaultValue)
+        {
+            return parser.Or(Return(defaultValue));
+        }
+
         public static Parser<TValue> Concat<TValue>(this Parser<TValue> first, Parser<TValue> second)
         {
             return input => first(input).Concat(EnumerableEx.Defer(() => second(input)));
