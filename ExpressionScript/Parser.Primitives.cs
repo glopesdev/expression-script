@@ -19,9 +19,19 @@ namespace ExpressionScript
             return Char().Where(predicate);
         }
 
-        public static Parser<char> Char(char c)
+        public static Parser<char> Char(char value)
         {
-            return Char(x => x == c);
+            return Char(x => x == value);
+        }
+
+        public static Parser<char> Char(IEnumerable<char> values)
+        {
+            return Char(values.Contains);
+        }
+
+        public static Parser<char> Char(params char[] values)
+        {
+            return Char(values.Contains);
         }
 
         public static Parser<char> DecimalDigit()
@@ -29,14 +39,24 @@ namespace ExpressionScript
             return Char(x => '0' <= x && x <= '9');
         }
 
-        public static Parser<string> String(string s)
+        public static Parser<string> String(string value)
         {
-            if (s == string.Empty) return Return(string.Empty);
-            var x = s[0];
-            var xs = s.Substring(1);
+            if (value == string.Empty) return Return(string.Empty);
+            var x = value[0];
+            var xs = value.Substring(1);
             return from rc in Char(x)
                    from rs in String(xs)
                    select rc + rs;
+        }
+
+        public static Parser<string> String(IEnumerable<string> values)
+        {
+            return Or(values.Select(String));
+        }
+
+        public static Parser<string> String(params string[] values)
+        {
+            return Or(values.Select(String));
         }
     }
 }
