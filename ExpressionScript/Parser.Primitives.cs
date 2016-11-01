@@ -59,11 +59,11 @@ namespace ExpressionScript
         public static Parser<TypeCode> IntegerTypeSuffix()
         {
             return Or(
-                Char(x => x == 'U' || x == 'u').SelectMany(s1 => Or(
-                    Char(x => x == 'L' || x == 'l').Select(s2 => TypeCode.UInt64),
+                Char('U', 'u').SelectMany(s1 => Or(
+                    Char('L', 'l').Select(s2 => TypeCode.UInt64),
                     Return(TypeCode.UInt32))),
-                Char(x => x == 'L' || x == 'l').SelectMany(s1 => Or(
-                    Char(x => x == 'U' || x == 'u').Select(s2 => TypeCode.UInt64),
+                Char('L', 'l').SelectMany(s1 => Or(
+                    Char('U', 'u').Select(s2 => TypeCode.UInt64),
                     Return(TypeCode.Int64))),
                 Return(TypeCode.Int32));
         }
