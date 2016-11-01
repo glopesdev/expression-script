@@ -8,6 +8,11 @@ namespace ExpressionScript
 {
     public static partial class Parser
     {
+        public static Parser<TValue> Optional<TValue>(this Parser<TValue> parser)
+        {
+            return parser.Or(Return(default(TValue)));
+        }
+
         public static Parser<TValue> Optional<TValue>(this Parser<TValue> parser, TValue defaultValue)
         {
             return parser.Or(Return(defaultValue));
