@@ -40,7 +40,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="EnumerableEx.cs" />
-    <Compile Include="Parser.Literals.cs" />
+    <Compile Include="Grammar\Grammar.Literals.cs" />
+    <Compile Include="Grammar\Grammar.Primitives.cs" />
     <Compile Include="Result.cs" />
     <Compile Include="Parser.cs" />
     <Compile Include="Parser.Monad.cs" />

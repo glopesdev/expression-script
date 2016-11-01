@@ -10,6 +10,14 @@ namespace ExpressionScript
 {
     public static partial class Parser
     {
+        public static Parser<ConstantExpression> Literal()
+        {
+            return Or(
+                Boolean(),
+                Integer(),
+                Real());
+        }
+
         public static Parser<ConstantExpression> Boolean()
         {
             return String("true").Select(x => Expression.Constant(true)).Or(
@@ -53,9 +61,10 @@ namespace ExpressionScript
         public static Parser<ConstantExpression> Real()
         {
             return from integral in DecimalDigits().Optional()
-                   from fractional in (from c in Char('.')
-                                       from d in DecimalDigits()
-                                       select c + d).Optional()
+                   from fractional in
+                       (from c in Char('.')
+                        from d in DecimalDigits()
+                        select c + d).Optional()
                    from exponent in Exponent().Optional()
                    where integral != null || fractional != null
                    from type in (fractional == null && exponent == null) ? RealTypeSuffix()
