@@ -8,6 +8,11 @@ namespace ExpressionScript
 {
     public static partial class Parser
     {
+        public static Parser<TValue> AsParser<TValue>(this IEnumerable<TValue> values)
+        {
+            return input => values.Select(value => new Result<TValue>(value, input));
+        }
+
         public static Parser<TValue> Return<TValue>(TValue value)
         {
             return input => EnumerableEx.Return(new Result<TValue>(value, input));
