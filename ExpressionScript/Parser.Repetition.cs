@@ -8,6 +8,32 @@ namespace ExpressionScript
 {
     public static partial class Parser
     {
+        public static Parser<TValue> Except<TValue>(this Parser<TValue> first, Parser<TValue> second)
+        {
+            return input => first(input).Except(second(input), ResultValueComparer<TValue>.Default);
+        }
+
+        public static Parser<TValue> Except<TValue>(this Parser<TValue> first, Parser<TValue> second, IEqualityComparer<TValue> comparer)
+        {
+            var valueComparer = new ResultValueComparer<TValue>(comparer);
+            return input => first(input).Except(second(input), valueComparer);
+        }
+
+        public static Parser<TValue> Except<TValue>(this Parser<TValue> first, IEnumerable<TValue> values)
+        {
+            return first.Except(values.AsParser());
+        }
+
+        public static Parser<TValue> Except<TValue>(this Parser<TValue> first, IEnumerable<TValue> values, IEqualityComparer<TValue> comparer)
+        {
+            return first.Except(values.AsParser(), comparer);
+        }
+
+        public static Parser<TValue> Except<TValue>(this Parser<TValue> first, params TValue[] values)
+        {
+            return first.Except(values.AsParser());
+        }
+
         public static Parser<TValue> Optional<TValue>(this Parser<TValue> parser)
         {
             return parser.Or(Return(default(TValue)));
