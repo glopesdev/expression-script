@@ -41,10 +41,10 @@ namespace ExpressionScript
                 {
                     switch (type)
                     {
-                        case TypeCode.Int32: return Expression.Constant(int.Parse(x, style));
-                        case TypeCode.Int64: return Expression.Constant(long.Parse(x, style));
-                        case TypeCode.UInt32: return Expression.Constant(uint.Parse(x, style));
-                        case TypeCode.UInt64: return Expression.Constant(ulong.Parse(x, style));
+                        case TypeCode.Int32: return Expression.Constant(int.Parse(x, style, CultureInfo.InvariantCulture));
+                        case TypeCode.Int64: return Expression.Constant(long.Parse(x, style, CultureInfo.InvariantCulture));
+                        case TypeCode.UInt32: return Expression.Constant(uint.Parse(x, style, CultureInfo.InvariantCulture));
+                        case TypeCode.UInt64: return Expression.Constant(ulong.Parse(x, style, CultureInfo.InvariantCulture));
                         default: throw new InvalidOperationException("Invalid type suffix implied from parser.");
                     }
                 });
