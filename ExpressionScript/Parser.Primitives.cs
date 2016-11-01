@@ -68,6 +68,30 @@ namespace ExpressionScript
                 Return(TypeCode.Int32));
         }
 
+        public static Parser<string> Exponent()
+        {
+            return from e in Char('e', 'E')
+                   from sign in ExponentSign()
+                   from x in DecimalDigits()
+                   select e + sign + x;
+        }
+
+        public static Parser<string> ExponentSign()
+        {
+            return Or(
+                Char('+').Select(x => "+"),
+                Char('-').Select(x => "-"),
+                Return(string.Empty));
+        }
+
+        public static Parser<TypeCode> RealTypeSuffix()
+        {
+            return Or(
+                Char('F', 'f').Select(s => TypeCode.Single),
+                Char('D', 'd').Select(s => TypeCode.Double),
+                Char('M', 'm').Select(s => TypeCode.Decimal));
+        }
+
         public static Parser<string> String(string value)
         {
             if (value == string.Empty) return Return(string.Empty);

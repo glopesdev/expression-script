@@ -6,6 +6,8 @@ namespace ExpressionScript.Tests
 {
     public partial class ParserTests
     {
+        #region Boolean Literal
+
         [TestMethod]
         public void TestBoolean_TrueLiteral_ReturnTrueExpression()
         {
@@ -29,6 +31,10 @@ namespace ExpressionScript.Tests
             var result = parser("tfrue").SingleOrDefault();
             Assert.IsNull(result);
         }
+
+        #endregion
+
+        #region Integer Literal
 
         private void TestIntegerLiteral_ReturnExpression(string input, object value)
         {
@@ -84,5 +90,57 @@ namespace ExpressionScript.Tests
         {
             TestIntegerLiteral_ReturnExpression("0X42Ul", 0x42UL);
         }
+
+        #endregion
+
+        #region Real Literal
+
+        private void TestRealLiteral_ReturnExpression(string input, object value)
+        {
+            var parser = Parser.Real();
+            var result = parser(input).Single();
+            Assert.AreEqual(value, result.Value.Value);
+        }
+
+        [TestMethod]
+        public void TestReal_FloatLiteral_ReturnFloatExpression()
+        {
+            TestRealLiteral_ReturnExpression("0.0f", 0.0f);
+            TestRealLiteral_ReturnExpression("0.0e42f", 0.0e42f);
+            TestRealLiteral_ReturnExpression(".0f", .0f);
+            TestRealLiteral_ReturnExpression(".0e42f", .0e42f);
+            TestRealLiteral_ReturnExpression("0f", 0f);
+            TestRealLiteral_ReturnExpression("0e42f", 0e42f);
+        }
+
+        [TestMethod]
+        public void TestReal_DoubleLiteral_ReturnDoubleExpression()
+        {
+            TestRealLiteral_ReturnExpression("0.0", 0.0);
+            TestRealLiteral_ReturnExpression("0.0e42", 0.0e42);
+            TestRealLiteral_ReturnExpression(".0", .0);
+            TestRealLiteral_ReturnExpression(".0e42", .0e42);
+            TestRealLiteral_ReturnExpression("0e42", 0e42);
+
+            TestRealLiteral_ReturnExpression("0.0d", 0.0d);
+            TestRealLiteral_ReturnExpression("0.0e42d", 0.0e42d);
+            TestRealLiteral_ReturnExpression(".0d", .0d);
+            TestRealLiteral_ReturnExpression(".0e42d", .0e42d);
+            TestRealLiteral_ReturnExpression("0d", 0d);
+            TestRealLiteral_ReturnExpression("0e42d", 0e42d);
+        }
+
+        [TestMethod]
+        public void TestReal_DecimalLiteral_ReturnDoubleExpression()
+        {
+            TestRealLiteral_ReturnExpression("0.0m", 0.0m);
+            TestRealLiteral_ReturnExpression("0.0e42m", 0.0e42m);
+            TestRealLiteral_ReturnExpression(".0m", .0m);
+            TestRealLiteral_ReturnExpression(".0e42m", .0e42m);
+            TestRealLiteral_ReturnExpression("0m", 0m);
+            TestRealLiteral_ReturnExpression("0e42m", 0e42m);
+        }
+
+        #endregion
     }
 }

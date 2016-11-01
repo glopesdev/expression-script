@@ -49,5 +49,29 @@ namespace ExpressionScript
                     }
                 });
         }
+
+        public static Parser<ConstantExpression> Real()
+        {
+            return from integral in DecimalDigits().Optional()
+                   from fractional in (from c in Char('.')
+                                       from d in DecimalDigits()
+                                       select c + d).Optional()
+                   from exponent in Exponent().Optional()
+                   where integral != null || fractional != null
+                   from type in (fractional == null && exponent == null) ? RealTypeSuffix()
+                                                                         : RealTypeSuffix().Optional(TypeCode.Double)
+                   select RealLiteral(integral + fractional + exponent, type);
+        }
+
+        static ConstantExpression RealLiteral(string s, TypeCode type)
+        {
+            switch (type)
+            {
+                case TypeCode.Single: return Expression.Constant(float.Parse(s, CultureInfo.InvariantCulture));
+                case TypeCode.Double: return Expression.Constant(double.Parse(s, CultureInfo.InvariantCulture));
+                case TypeCode.Decimal: return Expression.Constant(decimal.Parse(s, NumberStyles.Float, CultureInfo.InvariantCulture));
+                default: throw new InvalidOperationException("Invalid type suffix implied from parser.");
+            }
+        }
     }
 }
