@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -50,6 +51,36 @@ namespace ExpressionScript
                 '\u0027', // apostrophe
                 '\u005C') // backslash
                 .Concat(NewLineCharacter()));
+        }
+
+        public static Parser<char> SimpleEscapeSequence()
+        {
+            return Or(
+                String(@"\'").Select(x => '\''),
+                String("\\\"").Select(x => '\"'),
+                String(@"\\").Select(x => '\\'),
+                String(@"\0").Select(x => '\0'),
+                String(@"\a").Select(x => '\a'),
+                String(@"\b").Select(x => '\b'),
+                String(@"\f").Select(x => '\f'),
+                String(@"\n").Select(x => '\n'),
+                String(@"\r").Select(x => '\r'),
+                String(@"\t").Select(x => '\t'),
+                String(@"\v").Select(x => '\v'));
+        }
+
+        public static Parser<char> HexadecimalEscapeSequence()
+        {
+            return from prefix in String(@"\x")
+                   from digits in HexDigit().ManyWhile((c, i) => i < 4)
+                   select (char)int.Parse(digits, NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture);
+        }
+
+        public static Parser<char> UnicodeEscapeSequence()
+        {
+            return from prefix in String(@"\u")
+                   from digits in HexDigit().ManyWhile((c, i) => i < 4)
+                   select (char)int.Parse(digits, NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture);
         }
 
         public static Parser<char> NewLineCharacter()
