@@ -79,94 +79,208 @@ namespace ExpressionScript
             return Or((IEnumerable<Parser<TValue>>)parsers);
         }
 
+        #region ManyWhile
+
+        public static Parser<TAccumulate> ManyWhile<TValue, TAccumulate>(
+            this Parser<TValue> parser,
+            Func<TValue, int, bool> predicate,
+            TAccumulate seed,
+            Func<TAccumulate, TValue, TAccumulate> accumulator)
+        {
+            return ManyWhileIndexed(parser, predicate, seed, accumulator, 0);
+        }
+
+        static Parser<TAccumulate> ManyWhileIndexed<TValue, TAccumulate>(
+            Parser<TValue> parser,
+            Func<TValue, int, bool> predicate,
+            TAccumulate seed,
+            Func<TAccumulate, TValue, TAccumulate> accumulator,
+            int index)
+        {
+            return (from x in parser
+                    where predicate(x, index)
+                    from xs in ManyWhileIndexed(parser, predicate, seed, accumulator, index + 1)
+                    select accumulator(xs, x))
+                    .Or(Return(seed));
+        }
+
+        public static Parser<TValue> ManyWhile<TValue>(
+            this Parser<TValue> parser,
+            Func<TValue, int, bool> predicate,
+            Func<TValue, TValue, TValue> accumulator)
+        {
+            return ManyWhile(parser, predicate, default(TValue), accumulator);
+        }
+
+        public static Parser<IEnumerable<TValue>> ManyWhile<TValue>(
+            this Parser<TValue> parser,
+            Func<TValue, int, bool> predicate)
+        {
+            return ManyWhile(parser, predicate, Enumerable.Empty<TValue>(), (xs, x) => EnumerableEx.Concat(x, xs));
+        }
+
+        public static Parser<string> ManyWhile(this Parser<char> parser, Func<char, int, bool> predicate)
+        {
+            return ManyWhile(parser, predicate, string.Empty, (xs, x) => x + xs);
+        }
+
+        public static Parser<TAccumulate> ManyWhile<TValue, TAccumulate>(
+            this Parser<TValue> parser,
+            Func<TValue, bool> predicate,
+            TAccumulate seed,
+            Func<TAccumulate, TValue, TAccumulate> accumulator)
+        {
+            return Many(parser.Where(predicate), seed, accumulator);
+        }
+
+        public static Parser<TValue> ManyWhile<TValue>(
+            this Parser<TValue> parser,
+            Func<TValue, bool> predicate,
+            Func<TValue, TValue, TValue> accumulator)
+        {
+            return ManyWhile(parser, predicate, default(TValue), accumulator);
+        }
+
+        public static Parser<IEnumerable<TValue>> ManyWhile<TValue>(this Parser<TValue> parser, Func<TValue, bool> predicate)
+        {
+            return ManyWhile(parser, predicate, Enumerable.Empty<TValue>(), (xs, x) => EnumerableEx.Concat(x, xs));
+        }
+
+        public static Parser<string> ManyWhile(this Parser<char> parser, Func<char, bool> predicate)
+        {
+            return ManyWhile(parser, predicate, string.Empty, (xs, x) => x + xs);
+        }
+
+        #endregion
+
+        #region Many
+
+        static Parser<TAccumulate> ManyIndexed<TValue, TAccumulate>(
+            Parser<TValue> parser,
+            int min, int? max,
+            TAccumulate seed,
+            Func<TAccumulate, TValue, TAccumulate> accumulator,
+            int index)
+        {
+            if (index >= max) return Return(seed);
+            var result = from x in parser
+                         from xs in ManyIndexed(parser, min, max, seed, accumulator, index + 1)
+                         select accumulator(xs, x);
+            if (index >= min) return result.Or(Return(seed));
+            return result;
+        }
+
+        public static Parser<TAccumulate> Many<TValue, TAccumulate>(
+            this Parser<TValue> parser,
+            int min, int? max,
+            TAccumulate seed,
+            Func<TAccumulate, TValue, TAccumulate> accumulator)
+        {
+            return ManyIndexed(parser, min, max, seed, accumulator, 0);
+        }
+
+        public static Parser<TAccumulate> Many<TValue, TAccumulate>(
+            this Parser<TValue> parser,
+            int min,
+            TAccumulate seed,
+            Func<TAccumulate, TValue, TAccumulate> accumulator)
+        {
+            return Many(parser, min, null, seed, accumulator);
+        }
+
         public static Parser<TAccumulate> Many<TValue, TAccumulate>(
             this Parser<TValue> parser,
             TAccumulate seed,
             Func<TAccumulate, TValue, TAccumulate> accumulator)
         {
-            return (from x in parser
-                    from xs in Many(parser, seed, accumulator)
-                    select accumulator(xs, x))
-                    .Or(Return(seed));
+            return Many(parser, 0, null, seed, accumulator);
         }
 
-        public static Parser<TValue> Many<TValue>(this Parser<TValue> parser, Func<TValue, TValue, TValue> accumulator)
+        public static Parser<TValue> Many<TValue>(
+            this Parser<TValue> parser,
+            int min, int? max,
+            Func<TValue, TValue, TValue> accumulator)
         {
-            return Many(parser, default(TValue), accumulator);
+            return Many(parser, min, max, default(TValue), accumulator);
+        }
+
+        public static Parser<TValue> Many<TValue>(
+            this Parser<TValue> parser,
+            int min,
+            Func<TValue, TValue, TValue> accumulator)
+        {
+            return Many(parser, min, null, default(TValue), accumulator);
+        }
+
+        public static Parser<TValue> Many<TValue>(
+            this Parser<TValue> parser,
+            Func<TValue, TValue, TValue> accumulator)
+        {
+            return Many(parser, 0, null, default(TValue), accumulator);
+        }
+
+        public static Parser<IEnumerable<TValue>> Many<TValue>(this Parser<TValue> parser, int min, int? max)
+        {
+            return Many(parser, min, max, Enumerable.Empty<TValue>(), (xs, x) => EnumerableEx.Concat(x, xs));
+        }
+
+        public static Parser<IEnumerable<TValue>> Many<TValue>(this Parser<TValue> parser, int min)
+        {
+            return Many(parser, min, null, Enumerable.Empty<TValue>(), (xs, x) => EnumerableEx.Concat(x, xs));
         }
 
         public static Parser<IEnumerable<TValue>> Many<TValue>(this Parser<TValue> parser)
         {
-            return Many(parser, Enumerable.Empty<TValue>(), (xs, x) => EnumerableEx.Concat(x, xs));
+            return Many(parser, 0, null, Enumerable.Empty<TValue>(), (xs, x) => EnumerableEx.Concat(x, xs));
+        }
+
+        public static Parser<string> Many(this Parser<char> parser, int min, int? max)
+        {
+            return Many(parser, min, max, string.Empty, (xs, x) => x + xs);
+        }
+
+        public static Parser<string> Many(this Parser<char> parser, int min)
+        {
+            return Many(parser, min, null, string.Empty, (xs, x) => x + xs);
         }
 
         public static Parser<string> Many(this Parser<char> parser)
         {
-            return Many(parser, string.Empty, (xs, x) => x + xs);
+            return Many(parser, 0, null, string.Empty, (xs, x) => x + xs);
         }
 
-        public static Parser<TAccumulate> AtLeastOnce<TValue, TAccumulate>(
+        #endregion
+
+        #region ManySeparatedBy
+
+        public static Parser<TAccumulate> ManySeparatedBy<TValue, TSeparator, TAccumulate>(
             this Parser<TValue> parser,
+            Parser<TSeparator> separator,
+            int min, int? max,
             TAccumulate seed,
             Func<TAccumulate, TValue, TAccumulate> accumulator)
         {
-            return from x in parser
-                   from xs in Many(parser, seed, accumulator)
-                   select accumulator(xs, x);
+            if (max < 1) return Empty<TAccumulate>();
+            var result = from x in parser
+                         from xs in
+                             ManyIndexed(from s in separator
+                                         from y in parser
+                                         select y,
+                                         min, max,
+                                         seed, accumulator, 1)
+                         select accumulator(xs, x);
+            if (min < 1) return result.Or(Return(seed));
+            return result;
         }
 
-        public static Parser<TValue> AtLeastOnce<TValue>(this Parser<TValue> parser, Func<TValue, TValue, TValue> accumulator)
-        {
-            return AtLeastOnce(parser, default(TValue), accumulator);
-        }
-
-        public static Parser<IEnumerable<TValue>> AtLeastOnce<TValue>(this Parser<TValue> parser)
-        {
-            return AtLeastOnce(parser, Enumerable.Empty<TValue>(), (xs, x) => EnumerableEx.Concat(x, xs));
-        }
-
-        public static Parser<string> AtLeastOnce(this Parser<char> parser)
-        {
-            return AtLeastOnce(parser, string.Empty, (xs, x) => x + xs);
-        }
-
-        public static Parser<TAccumulate> AtLeastOnceSeparatedBy<TValue, TSeparator, TAccumulate>(
+        public static Parser<TAccumulate> ManySeparatedBy<TValue, TSeparator, TAccumulate>(
             this Parser<TValue> parser,
             Parser<TSeparator> separator,
+            int min,
             TAccumulate seed,
             Func<TAccumulate, TValue, TAccumulate> accumulator)
         {
-            return from x in parser
-                   from xs in
-                       Many(from s in separator
-                            from y in parser
-                            select y, seed, accumulator)
-                   select accumulator(xs, x);
-        }
-
-        public static Parser<TValue> AtLeastOnceSeparatedBy<TValue, TSeparator>(
-            this Parser<TValue> parser,
-            Parser<TSeparator> separator,
-            Func<TValue, TValue, TValue> accumulator)
-        {
-            return AtLeastOnceSeparatedBy(parser, separator, default(TValue), accumulator);
-        }
-
-        public static Parser<IEnumerable<TValue>> AtLeastOnceSeparatedBy<TValue, TSeparator>(
-            this Parser<TValue> parser,
-            Parser<TSeparator> separator)
-        {
-            return AtLeastOnceSeparatedBy(
-                parser, separator,
-                Enumerable.Empty<TValue>(),
-                (xs, x) => EnumerableEx.Concat(x, xs));
-        }
-
-        public static Parser<string> AtLeastOnceSeparatedBy<TSeparator>(
-            this Parser<char> parser,
-            Parser<TSeparator> separator)
-        {
-            return AtLeastOnceSeparatedBy(parser, separator, string.Empty, (xs, x) => x + xs);
+            return ManySeparatedBy(parser, separator, min, null, seed, accumulator);
         }
 
         public static Parser<TAccumulate> ManySeparatedBy<TValue, TSeparator, TAccumulate>(
@@ -175,7 +289,25 @@ namespace ExpressionScript
             TAccumulate seed,
             Func<TAccumulate, TValue, TAccumulate> accumulator)
         {
-            return parser.AtLeastOnceSeparatedBy(separator, seed, accumulator).Concat(Return(seed));
+            return ManySeparatedBy(parser, separator, 0, null, seed, accumulator);
+        }
+
+        public static Parser<TValue> ManySeparatedBy<TValue, TSeparator>(
+            this Parser<TValue> parser,
+            Parser<TSeparator> separator,
+            int min, int? max,
+            Func<TValue, TValue, TValue> accumulator)
+        {
+            return ManySeparatedBy(parser, separator, min, max, default(TValue), accumulator);
+        }
+
+        public static Parser<TValue> ManySeparatedBy<TValue, TSeparator>(
+            this Parser<TValue> parser,
+            Parser<TSeparator> separator,
+            int min,
+            Func<TValue, TValue, TValue> accumulator)
+        {
+            return ManySeparatedBy(parser, separator, min, null, default(TValue), accumulator);
         }
 
         public static Parser<TValue> ManySeparatedBy<TValue, TSeparator>(
@@ -183,7 +315,28 @@ namespace ExpressionScript
             Parser<TSeparator> separator,
             Func<TValue, TValue, TValue> accumulator)
         {
-            return ManySeparatedBy(parser, separator, default(TValue), accumulator);
+            return ManySeparatedBy(parser, separator, 0, null, default(TValue), accumulator);
+        }
+
+        public static Parser<IEnumerable<TValue>> ManySeparatedBy<TValue, TSeparator>(
+            this Parser<TValue> parser,
+            Parser<TSeparator> separator,
+            int min,
+            int? max)
+        {
+            return ManySeparatedBy(
+                parser, separator, min, max,
+                Enumerable.Empty<TValue>(), (xs, x) => EnumerableEx.Concat(x, xs));
+        }
+
+        public static Parser<IEnumerable<TValue>> ManySeparatedBy<TValue, TSeparator>(
+            this Parser<TValue> parser,
+            Parser<TSeparator> separator,
+            int min)
+        {
+            return ManySeparatedBy(
+                parser, separator, min, null,
+                Enumerable.Empty<TValue>(), (xs, x) => EnumerableEx.Concat(x, xs));
         }
 
         public static Parser<IEnumerable<TValue>> ManySeparatedBy<TValue, TSeparator>(
@@ -191,17 +344,35 @@ namespace ExpressionScript
             Parser<TSeparator> separator)
         {
             return ManySeparatedBy(
-                parser, separator,
-                Enumerable.Empty<TValue>(),
-                (xs, x) => EnumerableEx.Concat(x, xs));
+                parser, separator, 0, null,
+                Enumerable.Empty<TValue>(), (xs, x) => EnumerableEx.Concat(x, xs));
+        }
+
+        public static Parser<string> ManySeparatedBy<TSeparator>(
+            this Parser<char> parser,
+            Parser<TSeparator> separator,
+            int min,
+            int? max)
+        {
+            return ManySeparatedBy(parser, separator, min, max, string.Empty, (xs, x) => x + xs);
+        }
+
+        public static Parser<string> ManySeparatedBy<TSeparator>(
+            this Parser<char> parser,
+            Parser<TSeparator> separator,
+            int min)
+        {
+            return ManySeparatedBy(parser, separator, min, null, string.Empty, (xs, x) => x + xs);
         }
 
         public static Parser<string> ManySeparatedBy<TSeparator>(
             this Parser<char> parser,
             Parser<TSeparator> separator)
         {
-            return ManySeparatedBy(parser, separator, string.Empty, (xs, x) => x + xs);
+            return ManySeparatedBy(parser, separator, 0, null, string.Empty, (xs, x) => x + xs);
         }
+
+        #endregion
 
         public static Parser<TValue> BracketedBy<TValue, TOpen, TClose>(this Parser<TValue> parser, Parser<TOpen> open, Parser<TClose> close)
         {

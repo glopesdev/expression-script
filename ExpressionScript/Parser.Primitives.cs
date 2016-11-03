@@ -41,7 +41,7 @@ namespace ExpressionScript
 
         public static Parser<string> DecimalDigits()
         {
-            return DecimalDigit().AtLeastOnce();
+            return DecimalDigit().Many(1);
         }
 
         public static Parser<char> HexDigit()
@@ -53,7 +53,7 @@ namespace ExpressionScript
 
         public static Parser<string> HexDigits()
         {
-            return HexDigit().AtLeastOnce();
+            return HexDigit().Many(1);
         }
 
         public static Parser<string> String(string value)
