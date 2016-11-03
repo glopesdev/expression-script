@@ -8,6 +8,16 @@ namespace ExpressionScript
 {
     public static partial class Parser
     {
+        public static Parser<TValue> OneOf<TValue>(this Parser<TValue> parser, IEnumerable<TValue> values)
+        {
+            return parser.Where(values.Contains);
+        }
+
+        public static Parser<TValue> OneOf<TValue>(this Parser<TValue> parser, params TValue[] values)
+        {
+            return parser.Where(values.Contains);
+        }
+
         public static Parser<TValue> Except<TValue>(this Parser<TValue> first, Parser<TValue> second)
         {
             return input => first(input).Except(second(input), ResultValueComparer<TValue>.Default);
