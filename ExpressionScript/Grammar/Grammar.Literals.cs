@@ -16,7 +16,8 @@ namespace ExpressionScript
                 Boolean(),
                 Integer(),
                 Real(),
-                Character());
+                Character(),
+                StringLiteral());
         }
 
         public static Parser<ConstantExpression> Boolean()
@@ -93,6 +94,14 @@ namespace ExpressionScript
                 UnicodeEscapeSequence())
                 .BracketedBy(Char('\''), Char('\''))
                 .Select(c => Expression.Constant(c));
+        }
+
+        public static Parser<ConstantExpression> StringLiteral()
+        {
+            return Or(
+                RegularStringLiteral(),
+                VerbatimStringLiteral())
+                .Select(s => Expression.Constant(s));
         }
     }
 }

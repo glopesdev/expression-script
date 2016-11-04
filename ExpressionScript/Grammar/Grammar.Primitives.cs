@@ -95,5 +95,63 @@ namespace ExpressionScript
                 '\u2028',  // line separator
                 '\u2029'); // paragraph separator
         }
+
+        public static Parser<string> RegularStringLiteral()
+        {
+            return RegularStringLiteralCharacters().BracketedBy(
+                String("\""),
+                String("\""));
+        }
+
+        public static Parser<string> RegularStringLiteralCharacters()
+        {
+            return RegularStringLiteralCharacter().Many();
+        }
+
+        public static Parser<char> RegularStringLiteralCharacter()
+        {
+            return Or(
+                SingleRegularStringLiteralCharacter(),
+                SimpleEscapeSequence(),
+                HexadecimalEscapeSequence(),
+                UnicodeEscapeSequence());
+        }
+
+        public static Parser<char> SingleRegularStringLiteralCharacter()
+        {
+            return Char().Except(Char(
+                '\u0022', // quotation mark
+                '\u005C') // backslash
+                .Concat(NewLineCharacter()));
+        }
+
+        public static Parser<string> VerbatimStringLiteral()
+        {
+            return VerbatimStringLiteralCharacters().BracketedBy(
+                String("@\""),
+                String("\""));
+        }
+
+        public static Parser<string> VerbatimStringLiteralCharacters()
+        {
+            return VerbatimStringLiteralCharacter().Many();
+        }
+
+        public static Parser<char> VerbatimStringLiteralCharacter()
+        {
+            return Or(
+                SingleVerbatimStringLiteralCharacter(),
+                QuoteEscapeSequence());
+        }
+
+        public static Parser<char> SingleVerbatimStringLiteralCharacter()
+        {
+            return Char().Except(Char('\u0022')); // quotation mark
+        }
+
+        public static Parser<char> QuoteEscapeSequence()
+        {
+            return String(@"""""").Select(x => '\"');
+        }
     }
 }
