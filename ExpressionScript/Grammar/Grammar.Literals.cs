@@ -15,7 +15,8 @@ namespace ExpressionScript
             return Or(
                 Boolean(),
                 Integer(),
-                Real());
+                Real(),
+                Character());
         }
 
         public static Parser<ConstantExpression> Boolean()
@@ -81,6 +82,17 @@ namespace ExpressionScript
                 case TypeCode.Decimal: return Expression.Constant(decimal.Parse(s, NumberStyles.Float, CultureInfo.InvariantCulture));
                 default: throw new InvalidOperationException("Invalid type suffix implied from parser.");
             }
+        }
+
+        public static Parser<ConstantExpression> Character()
+        {
+            return Or(
+                SingleCharacter(),
+                SimpleEscapeSequence(),
+                HexadecimalEscapeSequence(),
+                UnicodeEscapeSequence())
+                .BracketedBy(Char('\''), Char('\''))
+                .Select(c => Expression.Constant(c));
         }
     }
 }

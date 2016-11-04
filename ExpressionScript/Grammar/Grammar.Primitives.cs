@@ -72,15 +72,18 @@ namespace ExpressionScript
         public static Parser<char> HexadecimalEscapeSequence()
         {
             return from prefix in String(@"\x")
-                   from digits in HexDigit().ManyWhile((c, i) => i < 4)
+                   from digits in HexDigit().Many(1, 4)
                    select (char)int.Parse(digits, NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture);
         }
 
         public static Parser<char> UnicodeEscapeSequence()
         {
-            return from prefix in String(@"\u")
-                   from digits in HexDigit().ManyWhile((c, i) => i < 4)
-                   select (char)int.Parse(digits, NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture);
+            return (from prefix in String(@"\u")
+                    from digits in HexDigit().Many(4)
+                    select (char)int.Parse(digits, NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture))
+                    .Or(from prefix in String(@"\U")
+                        from digits in HexDigit().Many(8)
+                        select (char)int.Parse(digits, NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture));
         }
 
         public static Parser<char> NewLineCharacter()
