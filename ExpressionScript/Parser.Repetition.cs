@@ -109,8 +109,8 @@ namespace ExpressionScript
         {
             return (from x in parser
                     where predicate(x, index)
-                    from xs in ManyWhileIndexed(parser, predicate, seed, accumulator, index + 1)
-                    select accumulator(xs, x))
+                    from xs in ManyWhileIndexed(parser, predicate, accumulator(seed, x), accumulator, index + 1)
+                    select xs)
                     .Or(Return(seed));
         }
 
@@ -126,12 +126,12 @@ namespace ExpressionScript
             this Parser<TValue> parser,
             Func<TValue, int, bool> predicate)
         {
-            return ManyWhile(parser, predicate, Enumerable.Empty<TValue>(), (xs, x) => EnumerableEx.Concat(x, xs));
+            return ManyWhile(parser, predicate, Enumerable.Empty<TValue>(), (xs, x) => xs.Concat(x));
         }
 
         public static Parser<string> ManyWhile(this Parser<char> parser, Func<char, int, bool> predicate)
         {
-            return ManyWhile(parser, predicate, string.Empty, (xs, x) => x + xs);
+            return ManyWhile(parser, predicate, string.Empty, (xs, x) => xs + x);
         }
 
         public static Parser<TAccumulate> ManyWhile<TValue, TAccumulate>(
@@ -153,12 +153,12 @@ namespace ExpressionScript
 
         public static Parser<IEnumerable<TValue>> ManyWhile<TValue>(this Parser<TValue> parser, Func<TValue, bool> predicate)
         {
-            return ManyWhile(parser, predicate, Enumerable.Empty<TValue>(), (xs, x) => EnumerableEx.Concat(x, xs));
+            return ManyWhile(parser, predicate, Enumerable.Empty<TValue>(), (xs, x) => xs.Concat(x));
         }
 
         public static Parser<string> ManyWhile(this Parser<char> parser, Func<char, bool> predicate)
         {
-            return ManyWhile(parser, predicate, string.Empty, (xs, x) => x + xs);
+            return ManyWhile(parser, predicate, string.Empty, (xs, x) => xs + x);
         }
 
         #endregion
@@ -174,8 +174,8 @@ namespace ExpressionScript
         {
             if (index >= max) return Return(seed);
             var result = from x in parser
-                         from xs in ManyIndexed(parser, min, max, seed, accumulator, index + 1)
-                         select accumulator(xs, x);
+                         from xs in ManyIndexed(parser, min, max, accumulator(seed, x), accumulator, index + 1)
+                         select xs;
             if (index >= min) return result.Or(Return(seed));
             return result;
         }
@@ -231,32 +231,32 @@ namespace ExpressionScript
 
         public static Parser<IEnumerable<TValue>> Many<TValue>(this Parser<TValue> parser, int min, int? max)
         {
-            return Many(parser, min, max, Enumerable.Empty<TValue>(), (xs, x) => EnumerableEx.Concat(x, xs));
+            return Many(parser, min, max, Enumerable.Empty<TValue>(), (xs, x) => xs.Concat(x));
         }
 
         public static Parser<IEnumerable<TValue>> Many<TValue>(this Parser<TValue> parser, int min)
         {
-            return Many(parser, min, null, Enumerable.Empty<TValue>(), (xs, x) => EnumerableEx.Concat(x, xs));
+            return Many(parser, min, null, Enumerable.Empty<TValue>(), (xs, x) => xs.Concat(x));
         }
 
         public static Parser<IEnumerable<TValue>> Many<TValue>(this Parser<TValue> parser)
         {
-            return Many(parser, 0, null, Enumerable.Empty<TValue>(), (xs, x) => EnumerableEx.Concat(x, xs));
+            return Many(parser, 0, null, Enumerable.Empty<TValue>(), (xs, x) => xs.Concat(x));
         }
 
         public static Parser<string> Many(this Parser<char> parser, int min, int? max)
         {
-            return Many(parser, min, max, string.Empty, (xs, x) => x + xs);
+            return Many(parser, min, max, string.Empty, (xs, x) => xs + x);
         }
 
         public static Parser<string> Many(this Parser<char> parser, int min)
         {
-            return Many(parser, min, null, string.Empty, (xs, x) => x + xs);
+            return Many(parser, min, null, string.Empty, (xs, x) => xs + x);
         }
 
         public static Parser<string> Many(this Parser<char> parser)
         {
-            return Many(parser, 0, null, string.Empty, (xs, x) => x + xs);
+            return Many(parser, 0, null, string.Empty, (xs, x) => xs + x);
         }
 
         #endregion
@@ -277,8 +277,8 @@ namespace ExpressionScript
                                          from y in parser
                                          select y,
                                          min, max,
-                                         seed, accumulator, 1)
-                         select accumulator(xs, x);
+                                         accumulator(seed, x), accumulator, 1)
+                         select xs;
             if (min < 1) return result.Or(Return(seed));
             return result;
         }
@@ -336,7 +336,7 @@ namespace ExpressionScript
         {
             return ManySeparatedBy(
                 parser, separator, min, max,
-                Enumerable.Empty<TValue>(), (xs, x) => EnumerableEx.Concat(x, xs));
+                Enumerable.Empty<TValue>(), (xs, x) => xs.Concat(x));
         }
 
         public static Parser<IEnumerable<TValue>> ManySeparatedBy<TValue, TSeparator>(
@@ -346,7 +346,7 @@ namespace ExpressionScript
         {
             return ManySeparatedBy(
                 parser, separator, min, null,
-                Enumerable.Empty<TValue>(), (xs, x) => EnumerableEx.Concat(x, xs));
+                Enumerable.Empty<TValue>(), (xs, x) => xs.Concat(x));
         }
 
         public static Parser<IEnumerable<TValue>> ManySeparatedBy<TValue, TSeparator>(
@@ -355,7 +355,7 @@ namespace ExpressionScript
         {
             return ManySeparatedBy(
                 parser, separator, 0, null,
-                Enumerable.Empty<TValue>(), (xs, x) => EnumerableEx.Concat(x, xs));
+                Enumerable.Empty<TValue>(), (xs, x) => xs.Concat(x));
         }
 
         public static Parser<string> ManySeparatedBy<TSeparator>(
@@ -364,7 +364,7 @@ namespace ExpressionScript
             int min,
             int? max)
         {
-            return ManySeparatedBy(parser, separator, min, max, string.Empty, (xs, x) => x + xs);
+            return ManySeparatedBy(parser, separator, min, max, string.Empty, (xs, x) => xs + x);
         }
 
         public static Parser<string> ManySeparatedBy<TSeparator>(
@@ -372,14 +372,14 @@ namespace ExpressionScript
             Parser<TSeparator> separator,
             int min)
         {
-            return ManySeparatedBy(parser, separator, min, null, string.Empty, (xs, x) => x + xs);
+            return ManySeparatedBy(parser, separator, min, null, string.Empty, (xs, x) => xs + x);
         }
 
         public static Parser<string> ManySeparatedBy<TSeparator>(
             this Parser<char> parser,
             Parser<TSeparator> separator)
         {
-            return ManySeparatedBy(parser, separator, 0, null, string.Empty, (xs, x) => x + xs);
+            return ManySeparatedBy(parser, separator, 0, null, string.Empty, (xs, x) => xs + x);
         }
 
         #endregion

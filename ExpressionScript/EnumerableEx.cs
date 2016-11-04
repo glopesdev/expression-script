@@ -30,13 +30,14 @@ namespace ExpressionScript
             }
         }
 
-        internal static IEnumerable<TValue> Concat<TValue>(TValue head, IEnumerable<TValue> tail)
+        internal static IEnumerable<TValue> Concat<TValue>(this IEnumerable<TValue> source, TValue value)
         {
-            yield return head;
-            foreach (var value in tail)
+            foreach (var element in source)
             {
-                yield return value;
+                yield return element;
             }
+
+            yield return value;
         }
     }
 }
