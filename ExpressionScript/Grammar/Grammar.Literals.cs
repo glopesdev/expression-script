@@ -12,12 +12,12 @@ namespace ExpressionScript
     {
         public static Parser<ConstantExpression> Literal()
         {
-            return Or(
+            return Token(Or(
                 Boolean(),
                 Integer(),
                 Real(),
                 Character(),
-                StringLiteral());
+                StringLiteral()));
         }
 
         public static Parser<ConstantExpression> Boolean()
