@@ -9,6 +9,56 @@ namespace ExpressionScript
 {
     public static partial class Parser
     {
+        public static Parser<TValue> Token<TValue>(this Parser<TValue> parser)
+        {
+            return from x in parser
+                   from w in Whitespace().ManySeparatedBy(Comment())
+                   select x;
+        }
+
+        public static Parser<string> Whitespace()
+        {
+            return Char(x =>
+                char.GetUnicodeCategory(x) == UnicodeCategory.SpaceSeparator ||
+                x == '\u0009' ||  // horizontal tab
+                x == '\u000B' ||  // vertical tab
+                x == '\u000C')    // form feed
+                .Many(string.Empty, (xs, x) => xs);
+        }
+
+        public static Parser<string> Comment()
+        {
+            return SingleLineComment().Or(DelimitedComment());
+        }
+
+        public static Parser<string> SingleLineComment()
+        {
+            return from x in String("//")
+                   from s in Char().Except(NewLineCharacter()).Many()
+                   select s;
+        }
+
+        public static Parser<string> DelimitedComment()
+        {
+            return from x in String("/*")
+                   from s in DelimitedCommentSection().Many((xs, c) => xs + c)
+                   from a in Char('*').Many(1)
+                   from c in Char('/')
+                   select s;
+        }
+
+        public static Parser<string> DelimitedCommentSection()
+        {
+            return Or(
+                String("/"),
+                Char('*').Many().SelectMany(x => NotSlashOrAsterisk().Select(c => x + c)));
+        }
+
+        public static Parser<char> NotSlashOrAsterisk()
+        {
+            return Char().Except('/', '*');
+        }
+
         public static Parser<TypeCode> IntegerTypeSuffix()
         {
             return Or(
