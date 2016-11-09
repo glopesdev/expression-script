@@ -125,7 +125,9 @@ namespace ExpressionScript
         {
             return Or(
                 Literal(),
-                ParenthesizedExpression());
+                ParenthesizedExpression())
+                .PostIncrementExpression()
+                .PostDecrementExpression();
         }
 
         public static Parser<Expression> ArrayCreationExpression()
@@ -138,6 +140,20 @@ namespace ExpressionScript
             return Defer(ExpressionTree).BracketedBy(
                 Token(Char('(')),
                 Token(Char(')')));
+        }
+
+        public static Parser<Expression> PostIncrementExpression(this Parser<Expression> parser)
+        {
+            return from x in parser
+                   from e in Token(String("++")).Or(Return(string.Empty))
+                   select string.IsNullOrEmpty(e) ? x : Expression.PostIncrementAssign(x);
+        }
+
+        public static Parser<Expression> PostDecrementExpression(this Parser<Expression> parser)
+        {
+            return from x in parser
+                   from e in Token(String("--")).Or(Return(string.Empty))
+                   select string.IsNullOrEmpty(e) ? x : Expression.PostDecrementAssign(x);
         }
     }
 }
