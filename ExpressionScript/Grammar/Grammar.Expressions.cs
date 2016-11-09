@@ -111,7 +111,9 @@ namespace ExpressionScript
 
         public static Parser<Expression> UnaryExpression()
         {
-            return PrimaryExpression();
+            return PrimaryExpression()
+                .PreIncrementExpression()
+                .PreDecrementExpression();
         }
 
         public static Parser<Expression> PrimaryExpression()
@@ -154,6 +156,20 @@ namespace ExpressionScript
             return from x in parser
                    from e in Token(String("--")).Or(Return(string.Empty))
                    select string.IsNullOrEmpty(e) ? x : Expression.PostDecrementAssign(x);
+        }
+
+        public static Parser<Expression> PreIncrementExpression(this Parser<Expression> parser)
+        {
+            return from e in Token(String("++")).Or(Return(string.Empty))
+                   from x in parser
+                   select string.IsNullOrEmpty(e) ? x : Expression.PreIncrementAssign(x);
+        }
+
+        public static Parser<Expression> PreDecrementExpression(this Parser<Expression> parser)
+        {
+            return from e in Token(String("--")).Or(Return(string.Empty))
+                   from x in parser
+                   select string.IsNullOrEmpty(e) ? x : Expression.PreDecrementAssign(x);
         }
     }
 }
