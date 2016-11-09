@@ -59,6 +59,142 @@ namespace ExpressionScript
             return Char().Except('/', '*');
         }
 
+        public static Parser<string> Identifier()
+        {
+            return AvailableIdentifier().Or(from c in Char('@')
+                                            from identifier in IdentifierOrKeyword()
+                                            select identifier);
+        }
+
+        public static Parser<string> AvailableIdentifier()
+        {
+            return IdentifierOrKeyword().Except(Keyword());
+        }
+
+        public static Parser<string> Keyword()
+        {
+            return String(
+                "abstract", "as", "base", "bool", "break",
+                "byte", "case", "catch", "char", "checked",
+                "class", "const", "continue", "decimal", "default",
+                "delegate", "do", "double", "else", "enum",
+                "event", "explicit", "extern", "false", "finally",
+                "fixed", "float", "for", "foreach", "goto",
+                "if", "implicit", "in", "int", "interface",
+                "internal", "is", "lock", "long", "namespace",
+                "new", "null", "object", "operator", "out",
+                "override", "params", "private", "protected", "public",
+                "readonly", "ref", "return", "sbyte", "sealed",
+                "short", "sizeof", "stackalloc", "static", "string",
+                "struct", "switch", "this", "throw", "true",
+                "try", "typeof", "uint", "ulong", "unchecked",
+                "unsafe", "ushort", "using", "virtual", "void",
+                "volatile", "while");
+        }
+
+        public static Parser<string> IdentifierOrKeyword()
+        {
+            return from c in IdentifierStartCharacter()
+                   from s in IdentifierPartCharacter().Many()
+                   select c + s;
+        }
+
+        public static Parser<char> IdentifierStartCharacter()
+        {
+            return LetterCharacter().Or(Char('\u005F')); // underscore
+        }
+
+        public static Parser<char> IdentifierPartCharacter()
+        {
+            return Or(
+                LetterCharacter(),
+                DecimalDigitCharacter(),
+                ConnectingCharacter(),
+                CombiningCharacter(),
+                FormattingCharacter());
+        }
+
+        public static Parser<char> LetterCharacter()
+        {
+            return Or(
+                UnicodeEscapeSequence(),
+                Char()).Where(x =>
+                {
+                    var category = char.GetUnicodeCategory(x);
+                    return category == UnicodeCategory.UppercaseLetter ||
+                           category == UnicodeCategory.LowercaseLetter ||
+                           category == UnicodeCategory.TitlecaseLetter ||
+                           category == UnicodeCategory.ModifierLetter ||
+                           category == UnicodeCategory.OtherLetter ||
+                           category == UnicodeCategory.LetterNumber;
+                });
+        }
+
+        public static Parser<char> CombiningCharacter()
+        {
+            return Or(
+                UnicodeEscapeSequence(),
+                Char()).Where(x =>
+                {
+                    var category = char.GetUnicodeCategory(x);
+                    return category == UnicodeCategory.NonSpacingMark ||
+                           category == UnicodeCategory.SpacingCombiningMark;
+                });
+        }
+
+        public static Parser<char> DecimalDigitCharacter()
+        {
+            return Or(
+                UnicodeEscapeSequence(),
+                Char()).Where(x =>
+                {
+                    var category = char.GetUnicodeCategory(x);
+                    return category == UnicodeCategory.DecimalDigitNumber;
+                }); 
+        }
+
+        public static Parser<char> ConnectingCharacter()
+        {
+            return Or(
+                UnicodeEscapeSequence(),
+                Char()).Where(x =>
+                {
+                    var category = char.GetUnicodeCategory(x);
+                    return category == UnicodeCategory.ConnectorPunctuation;
+                });
+        }
+
+        public static Parser<char> FormattingCharacter()
+        {
+            return Or(
+                UnicodeEscapeSequence(),
+                Char()).Where(x =>
+                {
+                    var category = char.GetUnicodeCategory(x);
+                    return category == UnicodeCategory.Format;
+                });
+        }
+
+        public static Parser<Type> PredefinedType()
+        {
+            return Or(
+                String("bool").Select(x => typeof(bool)),
+                String("byte").Select(x => typeof(byte)),
+                String("char").Select(x => typeof(char)),
+                String("decimal").Select(x => typeof(decimal)),
+                String("double").Select(x => typeof(double)),
+                String("float").Select(x => typeof(float)),
+                String("int").Select(x => typeof(int)),
+                String("long").Select(x => typeof(long)),
+                String("object").Select(x => typeof(object)),
+                String("sbyte").Select(x => typeof(sbyte)),
+                String("short").Select(x => typeof(short)),
+                String("string").Select(x => typeof(string)),
+                String("uint").Select(x => typeof(uint)),
+                String("ulong").Select(x => typeof(ulong)),
+                String("ushort").Select(x => typeof(ushort)));
+        }
+
         public static Parser<TypeCode> IntegerTypeSuffix()
         {
             return Or(
