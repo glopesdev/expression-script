@@ -12,9 +12,8 @@ namespace ExpressionScript.Tests
         public void TestChar()
         {
             var parser = Parser.Char();
-            var results = parser(CharInput).ToArray();
-            Assert.AreEqual(1, results.Length);
-            Assert.AreEqual(CharInput[0], results[0].Value);
+            var result = parser.Parse(CharInput);
+            Assert.AreEqual(CharInput[0], result.Value);
         }
     }
 }

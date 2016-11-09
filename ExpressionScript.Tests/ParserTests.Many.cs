@@ -16,7 +16,7 @@ namespace ExpressionScript.Tests
         public void Many_ZeroOrMoreChars_ReturnsString()
         {
             var parser = Parser.Char().Many();
-            var result = parser(ManyInput).Single();
+            var result = parser.Parse(ManyInput);
             Assert.AreEqual(ManyInput.Length, result.Value.Length);
         }
 
@@ -24,7 +24,7 @@ namespace ExpressionScript.Tests
         public void Many_AtLeastOneChar_ReturnsString()
         {
             var parser = Parser.Char().Many(1);
-            var result = parser(ManyInput).Single();
+            var result = parser.Parse(ManyInput);
             Assert.AreEqual(ManyInput.Length, result.Value.Length);
         }
 
@@ -32,7 +32,7 @@ namespace ExpressionScript.Tests
         public void Many_AtLeastOneCharEmptyString_ReturnsFailure()
         {
             var parser = Parser.Char().Many(1);
-            var result = parser(string.Empty).FirstOrDefault();
+            var result = parser.Parse(string.Empty);
             Assert.AreEqual(null, result);
         }
 
@@ -40,7 +40,7 @@ namespace ExpressionScript.Tests
         public void Many_AtMostOne_ReturnsSingletonString()
         {
             var parser = Parser.Char().Many(0, 1);
-            var result = parser(ManyInput).Single();
+            var result = parser.Parse(ManyInput);
             Assert.AreEqual(1, result.Value.Length);
             Assert.AreEqual(ManyInput.Length - 1, result.Tail.Length);
         }
@@ -49,7 +49,7 @@ namespace ExpressionScript.Tests
         public void Many_ZeroOrMoreDigitAccumulator_ReturnsTally()
         {
             var parser = Parser.Char().Many(0, (xs, x) => xs + int.Parse(new string(x, 1)));
-            var result = parser(ManyInput).Single();
+            var result = parser.Parse(ManyInput);
             Assert.AreEqual(ManyInput.Length * (ManyInput.Length + 1) / 2, result.Value);
         }
 
@@ -60,7 +60,7 @@ namespace ExpressionScript.Tests
             var parser = Parser.Char().Many(
                 min: 0, max: max,
                 seed: 0, accumulator: (xs, x) => xs + int.Parse(new string(x, 1)));
-            var result = parser(ManyInput).Single();
+            var result = parser.Parse(ManyInput);
             Assert.AreEqual(max * (max + 1) / 2, result.Value);
         }
 
@@ -68,7 +68,7 @@ namespace ExpressionScript.Tests
         public void ManySeparatedBy_CharList_ReturnsString()
         {
             var parser = Parser.Char().ManySeparatedBy(Parser.Char(','));
-            var result = parser(ManySeparatedByInput).Single();
+            var result = parser.Parse(ManySeparatedByInput);
             Assert.AreEqual(ManySeparatedByInput.Split(',').Length, result.Value.Length);
         }
 
@@ -78,7 +78,7 @@ namespace ExpressionScript.Tests
             var ndigits = ManySeparatedByInput.Split(',').Length;
             var parser = Parser.DecimalDigits().Select(x => int.Parse(x))
                                                .ManySeparatedBy(Parser.Char(','), (xs, x) => xs + x);
-            var result = parser(ManySeparatedByInput).Single();
+            var result = parser.Parse(ManySeparatedByInput);
             Assert.AreEqual(ndigits * (ndigits + 1) / 2, result.Value);
         }
     }

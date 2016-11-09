@@ -12,7 +12,7 @@ namespace ExpressionScript.Tests
         public void TestBoolean_TrueLiteral_ReturnTrueExpression()
         {
             var parser = Parser.Boolean();
-            var result = parser("true").Single();
+            var result = parser.Parse("true");
             Assert.AreEqual(true, result.Value.Value);
         }
 
@@ -20,7 +20,7 @@ namespace ExpressionScript.Tests
         public void TestBoolean_FalseLiteral_ReturnTrueExpression()
         {
             var parser = Parser.Boolean();
-            var result = parser("false").Single();
+            var result = parser.Parse("false");
             Assert.AreEqual(false, result.Value.Value);
         }
 
@@ -28,7 +28,7 @@ namespace ExpressionScript.Tests
         public void TestBoolean_InvalidLiteral_ReturnNullExpression()
         {
             var parser = Parser.Boolean();
-            var result = parser("tfrue").SingleOrDefault();
+            var result = parser.Parse("tfrue");
             Assert.IsNull(result);
         }
 
@@ -39,7 +39,7 @@ namespace ExpressionScript.Tests
         private void TestIntegerLiteral_ReturnExpression(string input, object value)
         {
             var parser = Parser.Integer();
-            var result = parser(input).Single();
+            var result = parser.Parse(input);
             Assert.AreEqual(value, result.Value.Value);
         }
 
@@ -98,7 +98,7 @@ namespace ExpressionScript.Tests
         private void TestRealLiteral_ReturnExpression(string input, object value)
         {
             var parser = Parser.Real();
-            var result = parser(input).Single();
+            var result = parser.Parse(input);
             Assert.AreEqual(value, result.Value.Value);
         }
 
