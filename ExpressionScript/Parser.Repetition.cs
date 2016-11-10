@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TInput = ExpressionScript.Input;
 
 namespace ExpressionScript
 {
@@ -165,6 +166,66 @@ namespace ExpressionScript
 
         #region Many
 
+        struct ManyInputState<TAccumulate>
+        {
+            public TInput Input;
+            public TAccumulate Accumulate;
+            public int Count;
+        }
+
+        static IEnumerable<IResult<TAccumulate>> ManyEnumerable<TValue, TAccumulate>(
+            Parser<TValue> parser,
+            int min, int? max,
+            TAccumulate seed,
+            Func<TAccumulate, TValue, TAccumulate> accumulator,
+            TInput input,
+            int index)
+        {
+            if (max == 0)
+            {
+                yield return new Result<TAccumulate>(seed, input);
+                yield break;
+            }
+
+            var stack = new Stack<ManyInputState<TAccumulate>>();
+            stack.Push(new ManyInputState<TAccumulate>
+            {
+                Input = input,
+                Accumulate = seed,
+                Count = index
+            });
+
+            while (stack.Count > 0)
+            {
+                var terminal = true;
+                var state = stack.Pop();
+                var results = parser(state.Input);
+                foreach (var result in results)
+                {
+                    terminal = false;
+                    var count = state.Count + 1;
+                    var accumulate = accumulator(state.Accumulate, result.Value);
+                    if (count >= max)
+                    {
+                        yield return new Result<TAccumulate>(accumulate, result.Tail);
+                        continue;
+                    }
+
+                    stack.Push(new ManyInputState<TAccumulate>
+                    {
+                        Input = result.Tail,
+                        Accumulate = accumulate,
+                        Count = count
+                    });
+                }
+
+                if (terminal && state.Count >= min)
+                {
+                    yield return new Result<TAccumulate>(state.Accumulate, state.Input);
+                }
+            }
+        }
+
         static Parser<TAccumulate> ManyIndexed<TValue, TAccumulate>(
             Parser<TValue> parser,
             int min, int? max,
@@ -172,12 +233,7 @@ namespace ExpressionScript
             Func<TAccumulate, TValue, TAccumulate> accumulator,
             int index)
         {
-            if (index >= max) return Return(seed);
-            var result = from x in parser
-                         from xs in ManyIndexed(parser, min, max, accumulator(seed, x), accumulator, index + 1)
-                         select xs;
-            if (index >= min) return result.Or(Return(seed));
-            return result;
+            return input => ManyEnumerable(parser, min, max, seed, accumulator, input, index);
         }
 
         public static Parser<TAccumulate> Many<TValue, TAccumulate>(
