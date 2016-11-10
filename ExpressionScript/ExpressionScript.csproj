@@ -43,6 +43,7 @@
     <Compile Include="Grammar\Grammar.Expressions.cs" />
     <Compile Include="Grammar\Grammar.Literals.cs" />
     <Compile Include="Grammar\Grammar.Primitives.cs" />
+    <Compile Include="Input.cs" />
     <Compile Include="Result.cs" />
     <Compile Include="Parser.cs" />
     <Compile Include="Parser.Monad.cs" />

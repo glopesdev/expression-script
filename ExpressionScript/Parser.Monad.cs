@@ -10,7 +10,7 @@ namespace ExpressionScript
     {
         public static IResult<TValue> Parse<TValue>(this Parser<TValue> parser, string input)
         {
-            return parser(input).SingleOrDefault();
+            return parser(new Input(input)).SingleOrDefault();
         }
 
         public static Parser<TValue> AsParser<TValue>(this IEnumerable<TValue> values)

@@ -11,7 +11,7 @@ namespace ExpressionScript
         public static Parser<char> Char()
         {
             return input => input.Take(1)
-                                 .Select(x => new Result<char>(x, input.Substring(1)));
+                                 .Select(x => new Result<char>(x, input.MoveNext()));
         }
 
         public static Parser<char> Char(Func<char, bool> predicate)
