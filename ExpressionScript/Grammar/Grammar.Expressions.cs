@@ -127,7 +127,8 @@ namespace ExpressionScript
         {
             return Or(
                 Literal(),
-                ParenthesizedExpression())
+                ParenthesizedExpression(),
+                TypeofExpression())
                 .PostIncrementExpression()
                 .PostDecrementExpression();
         }
@@ -170,6 +171,15 @@ namespace ExpressionScript
             return from e in Token(String("--")).Or(Return(string.Empty))
                    from x in parser
                    select string.IsNullOrEmpty(e) ? x : Expression.PreDecrementAssign(x);
+        }
+
+        public static Parser<Expression> TypeofExpression()
+        {
+            return from keyword in Token(String("typeof"))
+                   from type in Or(Type(),
+                                   String("void").Select(x => typeof(void)))
+                                   .BracketedBy(Token(Char('(')), Token(Char(')')))
+                   select Expression.Constant(type);
         }
     }
 }

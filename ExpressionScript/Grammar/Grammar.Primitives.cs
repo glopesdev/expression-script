@@ -59,6 +59,94 @@ namespace ExpressionScript
             return Char().Except('/', '*');
         }
 
+        public static Parser<Type> TypeName()
+        {
+            return from typeName in Identifier().ManySeparatedBy(Char('.'))
+                   from typeArguments in TypeArgumentList().Or(Return(Enumerable.Empty<Type>()))
+                                                           .Select(x => x.ToArray())
+                   let suffix = typeArguments.Length > 0 ? "`" + typeArguments.Length : string.Empty
+                   let type = System.Type.GetType(string.Join(".", typeName) + suffix)
+                   select type.IsGenericType ? type.MakeGenericType(typeArguments) : type;
+        }
+
+        public static Parser<Type> Type()
+        {
+            return Or(
+                ValueType(),
+                ReferenceType(),
+                TypeName());
+        }
+
+        public static Parser<Type> ValueType()
+        {
+            return StructType();
+        }
+
+        public static Parser<Type> ReferenceType()
+        {
+            return ClassType();
+        }
+
+        public static Parser<Type> StructType()
+        {
+            return SimpleType();
+        }
+
+        public static Parser<Type> ClassType()
+        {
+            return Or(
+                String("object").Select(x => typeof(object)),
+                String("string").Select(x => typeof(string)));
+        }
+
+        public static Parser<Type> SimpleType()
+        {
+            return Or(
+                NumericType(),
+                String("bool").Select(x => typeof(bool)));
+        }
+
+        public static Parser<Type> NumericType()
+        {
+            return Or(
+                IntegralType(),
+                FloatingPointType(),
+                String("decimal").Select(x => typeof(decimal)));
+        }
+
+        public static Parser<Type> IntegralType()
+        {
+            return Or(
+                String("sbyte").Select(x => typeof(sbyte)),
+                String("byte").Select(x => typeof(byte)),
+                String("short").Select(x => typeof(short)),
+                String("ushort").Select(x => typeof(ushort)),
+                String("int").Select(x => typeof(int)),
+                String("uint").Select(x => typeof(uint)),
+                String("long").Select(x => typeof(long)),
+                String("ulong").Select(x => typeof(ulong)),
+                String("char").Select(x => typeof(char)));
+        }
+
+        public static Parser<Type> FloatingPointType()
+        {
+            return Or(
+                String("float").Select(x => typeof(float)),
+                String("double").Select(x => typeof(double)));
+        }
+
+        public static Parser<IEnumerable<Type>> TypeArgumentList()
+        {
+            return TypeArguments().BracketedBy(
+                Token(Char('<')),
+                Token(Char('>')));
+        }
+
+        public static Parser<IEnumerable<Type>> TypeArguments()
+        {
+            return Type().ManySeparatedBy(Token(Char(',')));
+        }
+
         public static Parser<string> Identifier()
         {
             return AvailableIdentifier().Or(from c in Char('@')
