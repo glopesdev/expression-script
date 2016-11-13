@@ -462,6 +462,19 @@ namespace ExpressionScript
             return parser.ChainLeft(func).Or(Return(defaultValue));
         }
 
+        public static Parser<TValue> ChainLeft<TValue>(this Parser<TValue> parser, Parser<Func<TValue, TValue>> func)
+        {
+            var rest = default(Func<TValue, Parser<TValue>>);
+            rest = x => func.SelectMany(f => rest(f(x)))
+                            .Or(Return(x));
+            return parser.SelectMany(rest);
+        }
+
+        public static Parser<TValue> ChainLeft<TValue>(this Parser<TValue> parser, Parser<Func<TValue, TValue>> func, TValue defaultValue)
+        {
+            return parser.ChainLeft(func).Or(Return(defaultValue));
+        }
+
         public static Parser<TValue> ChainRight<TValue>(this Parser<TValue> parser, Parser<Func<TValue, TValue, TValue>> func)
         {
             return parser.SelectMany(x =>
