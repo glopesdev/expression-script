@@ -9,6 +9,11 @@ namespace ExpressionScript
 {
     public static partial class Parser
     {
+        static Func<TValue, TValue> Operator<TValue>(Func<TValue, TValue> func)
+        {
+            return func;
+        }
+
         static Func<TValue, TValue, TValue> Operator<TValue>(Func<TValue, TValue, TValue> func)
         {
             return func;
@@ -129,6 +134,7 @@ namespace ExpressionScript
                 Literal(),
                 ParenthesizedExpression(),
                 TypeofExpression())
+                .MemberAccess()
                 .PostIncrementExpression()
                 .PostDecrementExpression();
         }
@@ -171,6 +177,43 @@ namespace ExpressionScript
             return from e in Token(String("--")).Or(Return(string.Empty))
                    from x in parser
                    select string.IsNullOrEmpty(e) ? x : Expression.PreDecrementAssign(x);
+        }
+
+        public static Parser<IEnumerable<Expression>> ArgumentList()
+        {
+            return ExpressionTree().ManySeparatedBy(Token(Char(',')));
+        }
+
+        public static Parser<Expression> MemberAccess(this Parser<Expression> parser)
+        {
+            return parser.ChainLeft(
+                   from c in Token(Char('.'))
+                   from identifier in Identifier()
+                   from accessOperator in Or(InvocationExpression(identifier),
+                                             ElementAccessExpression(identifier),
+                                             MemberAccessExpression(identifier))
+                   select accessOperator);
+        }
+
+        public static Parser<Func<Expression, Expression>> MemberAccessExpression(string propertyOrFieldName)
+        {
+            return Return(Operator<Expression>(x => Expression.PropertyOrField(x, propertyOrFieldName)));
+        }
+
+        public static Parser<Func<Expression, Expression>> InvocationExpression(string methodName)
+        {
+            return from o in Token(Char('('))
+                   from arguments in ArgumentList()
+                   from c in Token(Char(')'))
+                   select Operator<Expression>(x => Expression.Call(x, methodName, null, arguments.ToArray()));
+        }
+
+        public static Parser<Func<Expression, Expression>> ElementAccessExpression(string propertyName)
+        {
+            return from o in Token(Char('['))
+                   from arguments in ArgumentList()
+                   from c in Token(Char(']'))
+                   select Operator<Expression>(x => Expression.Property(x, propertyName, arguments.ToArray()));
         }
 
         public static Parser<Expression> TypeofExpression()
