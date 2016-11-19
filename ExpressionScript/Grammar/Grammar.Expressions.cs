@@ -134,7 +134,8 @@ namespace ExpressionScript
             return Or(
                 Literal(),
                 ParenthesizedExpression(),
-                TypeofExpression())
+                TypeofExpression(),
+                DefaultValueExpression())
                 .MemberAccess()
                 .PostIncrementExpression()
                 .PostDecrementExpression();
@@ -234,6 +235,13 @@ namespace ExpressionScript
                                    String("void").Select(x => typeof(void)))
                                    .BracketedBy(Token(Char('(')), Token(Char(')')))
                    select Expression.Constant(type);
+        }
+
+        public static Parser<Expression> DefaultValueExpression()
+        {
+            return from keyword in Token(String("default"))
+                   from type in Type().BracketedBy(Token(Char('(')), Token(Char(')')))
+                   select Expression.Default(type);
         }
     }
 }
