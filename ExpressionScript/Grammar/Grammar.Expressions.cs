@@ -147,7 +147,10 @@ namespace ExpressionScript
                    from type in Type()
                    from o in Token(Char('['))
                    from c in Token(Char(']'))
-                   select Expression.NewArrayInit(type);
+                   from initializers in ExpressionTree().ManySeparatedBy(Token(Char(',')))
+                                                        .BracketedBy(Token(Char('{')), Token(Char('}')))
+                                                        .Optional(Enumerable.Empty<Expression>())
+                   select Expression.NewArrayInit(type, initializers);
         }
 
         public static Parser<Expression> ParenthesizedExpression()
