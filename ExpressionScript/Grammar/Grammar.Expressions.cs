@@ -143,7 +143,11 @@ namespace ExpressionScript
 
         public static Parser<Expression> ArrayCreationExpression()
         {
-            return Parser.Empty<Expression>();
+            return from keyword in Token(String("new"))
+                   from type in Type()
+                   from o in Token(Char('['))
+                   from c in Token(Char(']'))
+                   select Expression.NewArrayInit(type);
         }
 
         public static Parser<Expression> ParenthesizedExpression()
