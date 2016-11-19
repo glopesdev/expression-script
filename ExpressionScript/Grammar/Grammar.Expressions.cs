@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -187,12 +188,12 @@ namespace ExpressionScript
         public static Parser<Expression> MemberAccess(this Parser<Expression> parser)
         {
             return parser.ChainLeft(
-                   from c in Token(Char('.'))
+                Or(from c in Token(Char('.'))
                    from identifier in Identifier()
                    from accessOperator in Or(InvocationExpression(identifier),
-                                             ElementAccessExpression(identifier),
                                              MemberAccessExpression(identifier))
-                   select accessOperator);
+                   select accessOperator,
+                   ElementAccessExpression()));
         }
 
         public static Parser<Func<Expression, Expression>> MemberAccessExpression(string propertyOrFieldName)
@@ -208,12 +209,22 @@ namespace ExpressionScript
                    select Operator<Expression>(x => Expression.Call(x, methodName, null, arguments.ToArray()));
         }
 
-        public static Parser<Func<Expression, Expression>> ElementAccessExpression(string propertyName)
+        public static Parser<Func<Expression, Expression>> ElementAccessExpression()
         {
             return from o in Token(Char('['))
                    from arguments in ArgumentList()
                    from c in Token(Char(']'))
-                   select Operator<Expression>(x => Expression.Property(x, propertyName, arguments.ToArray()));
+                   select Operator<Expression>(x =>
+                   {
+                       var type = x.Type;
+                       if (type.IsArray) return Expression.ArrayAccess(x, arguments);
+                       else
+                       {
+                           var defaultMembers = type.GetDefaultMembers();
+                           var indexer = (PropertyInfo)defaultMembers.Single(member => member.MemberType == MemberTypes.Property);
+                           return Expression.Property(x, indexer, arguments);
+                       }
+                   });
         }
 
         public static Parser<Expression> TypeofExpression()
