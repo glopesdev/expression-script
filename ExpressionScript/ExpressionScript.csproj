@@ -45,6 +45,8 @@
     <Compile Include="Grammar\Grammar.Primitives.cs" />
     <Compile Include="Grammar\Grammar.Statements.cs" />
     <Compile Include="Input.cs" />
+    <Compile Include="Map.cs" />
+    <Compile Include="NameTable.cs" />
     <Compile Include="Result.cs" />
     <Compile Include="Parser.cs" />
     <Compile Include="Parser.Monad.cs" />
