@@ -61,7 +61,7 @@ namespace ExpressionScript
 
         public static Parser<Type> TypeName()
         {
-            return from typeName in Identifier().ManySeparatedBy(Char('.'))
+            return from typeName in Identifier().ManySeparatedBy(Char('.'), 1)
                    from typeArguments in TypeArgumentList().Or(Return(Enumerable.Empty<Type>()))
                                                            .Select(x => x.ToArray())
                    let suffix = typeArguments.Length > 0 ? "`" + typeArguments.Length : string.Empty
