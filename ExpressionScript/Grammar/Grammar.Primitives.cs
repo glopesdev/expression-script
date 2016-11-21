@@ -12,18 +12,22 @@ namespace ExpressionScript
         public static Parser<TValue> Token<TValue>(this Parser<TValue> parser)
         {
             return from x in parser
-                   from w in Whitespace().ManySeparatedBy(Comment())
+                   from w in WhitespaceOrLineTerminators().ManySeparatedBy(Comment())
                    select x;
         }
 
-        public static Parser<string> Whitespace()
+        public static Parser<string> WhitespaceOrLineTerminators()
+        {
+            return Whitespace().Or(NewLineCharacter()).Many(string.Empty, (xs, x) => xs);
+        }
+
+        public static Parser<char> Whitespace()
         {
             return Char(x =>
                 char.GetUnicodeCategory(x) == UnicodeCategory.SpaceSeparator ||
                 x == '\u0009' ||  // horizontal tab
                 x == '\u000B' ||  // vertical tab
-                x == '\u000C')    // form feed
-                .Many(string.Empty, (xs, x) => xs);
+                x == '\u000C');   // form feed
         }
 
         public static Parser<string> Comment()
