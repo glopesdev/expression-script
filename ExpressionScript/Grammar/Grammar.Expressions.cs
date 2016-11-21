@@ -133,6 +133,7 @@ namespace ExpressionScript
         {
             return Or(
                 Literal(),
+                SimpleName(),
                 ParenthesizedExpression(),
                 TypeofExpression(),
                 DefaultValueExpression())
@@ -151,6 +152,13 @@ namespace ExpressionScript
                                                         .BracketedBy(Token(Char('{')), Token(Char('}')))
                                                         .Optional(Enumerable.Empty<Expression>())
                    select Expression.NewArrayInit(type, initializers);
+        }
+
+        public static Parser<Expression> SimpleName()
+        {
+            return from identifier in Token(Identifier())
+                   from state in State()
+                   select state.GetVariable(identifier);
         }
 
         public static Parser<Expression> ParenthesizedExpression()
