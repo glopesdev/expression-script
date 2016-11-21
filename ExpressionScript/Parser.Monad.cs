@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TState = ExpressionScript.NameTable;
 
 namespace ExpressionScript
 {
@@ -26,6 +27,19 @@ namespace ExpressionScript
         public static Parser<TValue> Empty<TValue>()
         {
             return input => Enumerable.Empty<IResult<TValue>>();
+        }
+
+        public static Parser<TState> State()
+        {
+            return input => EnumerableEx.Return(new Result<TState>(input.State, input));
+        }
+
+        public static Parser<TValue> SelectState<TValue>(this Parser<TValue> parser, Func<TValue, TState, TState> selector)
+        {
+            return input => parser(input).Select(result =>
+                new Result<TValue>(
+                    result.Value,
+                    result.Tail.Update(selector(result.Value, result.Tail.State))));
         }
 
         public static Parser<TValue> Defer<TValue>(Func<Parser<TValue>> parserFactory)

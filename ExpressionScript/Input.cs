@@ -62,6 +62,11 @@ namespace ExpressionScript
             return offset < source.Length ? new Input<TState>(source, offset + 1, state) : this;
         }
 
+        public Input<TState> Update(TState state)
+        {
+            return new Input<TState>(source, offset, state);
+        }
+
         public bool Equals(Input<TState> other)
         {
             if (other == null) return false;
