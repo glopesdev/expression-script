@@ -13,6 +13,7 @@ namespace ExpressionScript
         {
             return Or(
                 Block(),
+                DeclarationStatement(),
                 EmptyStatement());
         }
 
@@ -21,12 +22,34 @@ namespace ExpressionScript
             return from o in Token(Char('{'))
                    from statements in Statement().Many()
                    from c in Token(Char('}'))
-                   select Expression.Block(statements);
+                   from state in State()
+                   select Expression.Block(state.GetScopeVariables(), statements);
         }
 
         public static Parser<Expression> EmptyStatement()
         {
             return Char(';').SelectMany(x => Empty<Expression>());
+        }
+
+        public static Parser<Expression> DeclarationStatement()
+        {
+            return from declaration in LocalVariableDeclaration()
+                   from semicolon in Token(Char(';'))
+                   select declaration;
+        }
+
+        public static Parser<Expression> LocalVariableDeclaration()
+        {
+            return from type in Token(Type())
+                   from variable in LocalVariableDeclarator(type)
+                   select variable;
+        }
+
+        public static Parser<Expression> LocalVariableDeclarator(Type type)
+        {
+            return (from identifier in Identifier()
+                    select Expression.Variable(type, identifier))
+                    .SelectState((variable, state) => state.AddVariable(variable));
         }
     }
 }

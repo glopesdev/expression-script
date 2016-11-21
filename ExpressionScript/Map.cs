@@ -154,6 +154,44 @@ namespace ExpressionScript
             }
         }
 
+        public IEnumerable<KeyValuePair<TKey, TValue>> GreaterThanOrEqual(TKey key)
+        {
+            if (root == null) yield break;
+
+            var current = root;
+            var stack = new Stack<Node>(root.height);
+            while (current != null)
+            {
+                var comparison = Comparer<TKey>.Default.Compare(key, current.key);
+                if (comparison == 0)
+                {
+                    yield return new KeyValuePair<TKey, TValue>(current.key, current.value);
+                    current = current.right;
+                    break;
+                }
+
+                if (comparison < 0)
+                {
+                    stack.Push(current);
+                    current = current.left;
+                }
+                else current = current.right;
+            }
+
+            while (current != null || stack.Count > 0)
+            {
+                while (current != null)
+                {
+                    stack.Push(current);
+                    current = current.left;
+                }
+
+                current = stack.Pop();
+                yield return new KeyValuePair<TKey, TValue>(current.key, current.value);
+                current = current.right;
+            }
+        }
+
         public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
         {
             if (root == null) yield break;
