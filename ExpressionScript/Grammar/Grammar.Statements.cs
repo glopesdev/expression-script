@@ -40,9 +40,10 @@ namespace ExpressionScript
 
         public static Parser<Expression> LocalVariableDeclaration()
         {
-            return from type in Token(Type())
-                   from variable in LocalVariableDeclarator(type)
-                   select variable;
+            return Or(ImplicitlyTypedLocalVariableDeclarator(),
+                      from type in Token(Type())
+                      from variable in LocalVariableDeclarator(type)
+                      select variable);
         }
 
         public static Parser<Expression> LocalVariableDeclarator(Type type)
@@ -55,6 +56,18 @@ namespace ExpressionScript
                                              from initializer in LocalVariableInitializer()
                                              select Expression.Assign(variable, initializer),
                                              variable));
+        }
+
+        public static Parser<Expression> ImplicitlyTypedLocalVariableDeclarator()
+        {
+            return (from var in Token(String("var"))
+                    from identifier in Token(Identifier())
+                    from e in Token(Char('='))
+                    from initializer in LocalVariableInitializer()
+                    let variable = Expression.Variable(initializer.Type, identifier)
+                    select Expression.Assign(variable, initializer))
+                    .SelectState((assign, state) => state.AddVariable((ParameterExpression)assign.Left));
+
         }
 
         public static Parser<Expression> LocalVariableInitializer()
