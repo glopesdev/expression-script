@@ -34,6 +34,16 @@ namespace ExpressionScript
             this.state = state;
         }
 
+        public string Source
+        {
+            get { return source; }
+        }
+
+        public int Offset
+        {
+            get { return offset; }
+        }
+
         public int Length
         {
             get { return source.Length - offset; }
