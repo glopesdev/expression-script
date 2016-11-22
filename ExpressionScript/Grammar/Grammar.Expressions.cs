@@ -133,8 +133,8 @@ namespace ExpressionScript
         {
             return Or(
                 Literal(),
-                SimpleName(),
                 StaticMemberAccess(),
+                SimpleName(),
                 ParenthesizedExpression(),
                 TypeofExpression(),
                 DefaultValueExpression())

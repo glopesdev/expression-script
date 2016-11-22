@@ -65,12 +65,31 @@ namespace ExpressionScript
 
         public static Parser<Type> TypeName()
         {
-            return from typeName in Identifier().ManySeparatedBy(Char('.'), 1)
-                   from typeArguments in TypeArgumentList().Or(Return(Enumerable.Empty<Type>()))
-                                                           .Select(x => x.ToArray())
-                   let suffix = typeArguments.Length > 0 ? "`" + typeArguments.Length : string.Empty
-                   let type = System.Type.GetType(string.Join(".", typeName) + suffix)
-                   select type.IsGenericType ? type.MakeGenericType(typeArguments) : type;
+            return (from nameCandidate in TypeNameCandidates()
+                    from typeArguments in TypeArgumentList().Or(Return(Enumerable.Empty<Type>()))
+                                                            .Select(x => x.ToArray())
+                    let suffix = typeArguments.Length > 0 ? "`" + typeArguments.Length : string.Empty
+                    let type = System.Type.GetType(nameCandidate + suffix)
+                    where type != null
+                    select type.IsGenericType ? type.MakeGenericType(typeArguments) : type)
+                    .First();
+        }
+
+        static Parser<string> TypeNameCandidates()
+        {
+            return input => Identifier().ManySeparatedBy(Token(Char('.')), 1)(input).SelectMany(
+                   result => TypeNameCandidatesEnumerable(input, result));
+        }
+
+        static IEnumerable<IResult<string>> TypeNameCandidatesEnumerable(Input<ParserContext> input, IResult<IEnumerable<string>> result)
+        {
+            var nameParts = result.Value.ToArray();
+            for (int i = 0; i < nameParts.Length; i++)
+            {
+                var name = string.Join(".", nameParts, 0, nameParts.Length - i);
+                var remainder = new Input<ParserContext>(input.Source, input.Offset + name.Length, input.State);
+                yield return new Result<string>(name, remainder);
+            }
         }
 
         public static Parser<Type> Type()
