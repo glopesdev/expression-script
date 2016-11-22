@@ -261,11 +261,11 @@ namespace ExpressionScript
 
         public static Parser<Expression> LambdaExpression()
         {
-            return from parameters in ExplicitAnonymousFunctionSignature()
-                       .SelectState((parameters, state) => state.AddVariable(parameters))
-                   from arrow in Token(String("=>"))
-                   from body in ExpressionTree()
-                   select Expression.Lambda(body, parameters);
+            return ExplicitAnonymousFunctionSignature().WithState(
+                (parameters, state) => state.CreateScope().AddVariable(parameters),
+                parameters => from arrow in Token(String("=>"))
+                              from body in ExpressionTree()
+                              select Expression.Lambda(body, parameters));
         }
 
         public static Parser<IEnumerable<ParameterExpression>> ExplicitAnonymousFunctionSignature()

@@ -50,7 +50,7 @@ namespace ExpressionScript
         {
             return (from identifier in Token(Identifier())
                     select Expression.Variable(type, identifier))
-                    .SelectState((variable, state) => state.AddVariable(variable))
+                    .WithState((variable, state) => state.AddVariable(variable))
                     .SelectMany(variable =>
                         Optional<Expression>(from e in Token(Char('='))
                                              from initializer in LocalVariableInitializer()
@@ -66,7 +66,7 @@ namespace ExpressionScript
                     from initializer in LocalVariableInitializer()
                     let variable = Expression.Variable(initializer.Type, identifier)
                     select Expression.Assign(variable, initializer))
-                    .SelectState((assign, state) => state.AddVariable((ParameterExpression)assign.Left));
+                    .WithState((assign, state) => state.AddVariable((ParameterExpression)assign.Left));
 
         }
 

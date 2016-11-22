@@ -34,12 +34,22 @@ namespace ExpressionScript
             return input => EnumerableEx.Return(new Result<TState>(input.State, input));
         }
 
-        public static Parser<TValue> SelectState<TValue>(this Parser<TValue> parser, Func<TValue, TState, TState> selector)
+        public static Parser<TValue> WithState<TValue>(this Parser<TValue> parser, Func<TValue, TState, TState> stateSelector)
         {
             return input => parser(input).Select(result =>
                 new Result<TValue>(
                     result.Value,
-                    result.Tail.Update(selector(result.Value, result.Tail.State))));
+                    result.Tail.Update(stateSelector(result.Value, result.Tail.State))));
+        }
+
+        public static Parser<TResult> WithState<TValue, TResult>(
+            this Parser<TValue> parser,
+            Func<TValue, TState, TState> stateSelector,
+            Func<TValue, Parser<TResult>> parserSelector)
+        {
+            return input => parser(input).SelectMany(
+                result => parserSelector(result.Value)(result.Tail.Update(stateSelector(result.Value, result.Tail.State))).Select(
+                iresult => new Result<TResult>(iresult.Value, iresult.Tail.Update(result.Tail.State))));
         }
 
         public static Parser<TValue> Defer<TValue>(Func<Parser<TValue>> parserFactory)
