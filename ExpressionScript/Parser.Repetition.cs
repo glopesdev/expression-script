@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using TInput = ExpressionScript.Input<ExpressionScript.NameTable>;
+using TInput = ExpressionScript.Input<ExpressionScript.ParserContext>;
 
 namespace ExpressionScript
 {

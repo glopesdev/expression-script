@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using TState = ExpressionScript.NameTable;
+using TState = ExpressionScript.ParserContext;
 
 namespace ExpressionScript
 {
@@ -11,7 +11,7 @@ namespace ExpressionScript
     {
         public static IResult<TValue> Parse<TValue>(this Parser<TValue> parser, string input)
         {
-            return parser(new Input<NameTable>(input, NameTable.Empty)).SingleOrDefault();
+            return parser(new Input<ParserContext>(input, ParserContext.Empty)).SingleOrDefault();
         }
 
         public static Parser<TValue> AsParser<TValue>(this IEnumerable<TValue> values)
