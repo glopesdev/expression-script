@@ -40,6 +40,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="EnumerableEx.cs" />
+    <Compile Include="GenericName.cs" />
     <Compile Include="Grammar\Grammar.Expressions.cs" />
     <Compile Include="Grammar\Grammar.Literals.cs" />
     <Compile Include="Grammar\Grammar.Primitives.cs" />

@@ -170,6 +170,14 @@ namespace ExpressionScript
             return Type().ManySeparatedBy(Token(Char(',')));
         }
 
+        public static Parser<GenericName> GenericIdentifier()
+        {
+            return from identifier in Identifier()
+                   from typeArguments in Or(TypeArgumentList().Select(x => x.ToArray()),
+                                            Return(System.Type.EmptyTypes))
+                   select new GenericName(identifier, typeArguments);
+        }
+
         public static Parser<string> Identifier()
         {
             return AvailableIdentifier().Or(from c in Char('@')
