@@ -134,6 +134,7 @@ namespace ExpressionScript
             return Or(
                 Literal(),
                 SimpleName(),
+                StaticMemberAccess(),
                 ParenthesizedExpression(),
                 TypeofExpression(),
                 DefaultValueExpression())
@@ -199,6 +200,35 @@ namespace ExpressionScript
         public static Parser<IEnumerable<Expression>> ArgumentList()
         {
             return ExpressionTree().ManySeparatedBy(Token(Char(',')));
+        }
+
+        public static Parser<Expression> StaticMemberAccess()
+        {
+            return from type in Token(Type())
+                   from c in Token(Char('.'))
+                   from identifier in Identifier()
+                   from memberAccess in Or(StaticInvocationExpression(type, identifier),
+                                           StaticMemberAccessExpression(type, identifier))
+                   select memberAccess;
+        }
+
+        static Parser<Expression> StaticMemberAccessExpression(Type type, string propertyOrFieldName)
+        {
+            var propertyOrField = type.GetMember(propertyOrFieldName, BindingFlags.Static | BindingFlags.Public);
+            if (propertyOrField.Length != 1)
+            {
+                throw new ArgumentException("The specified member name is ambiguous.", "propertyOrFieldName");
+            }
+
+            return Return(Expression.MakeMemberAccess(null, propertyOrField[0]));
+        }
+
+        static Parser<Expression> StaticInvocationExpression(Type type, string methodName)
+        {
+            return from o in Token(Char('('))
+                   from arguments in ArgumentList()
+                   from c in Token(Char(')'))
+                   select Expression.Call(type, methodName, null, arguments.ToArray());
         }
 
         public static Parser<Expression> MemberAccess(this Parser<Expression> parser)
