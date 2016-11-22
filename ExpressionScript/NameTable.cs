@@ -43,6 +43,17 @@ namespace ExpressionScript
             return new NameTable(depth, types, variables.Add(GetNameKey(variable.Name), variable));
         }
 
+        public NameTable AddVariable(IEnumerable<ParameterExpression> variables)
+        {
+            var map = this.variables;
+            foreach (var variable in variables)
+            {
+                map = map.Add(GetNameKey(variable.Name), variable);
+            }
+
+            return new NameTable(depth, types, map);
+        }
+
         public Type GetType(string name)
         {
             return types[GetNameKey(name)];

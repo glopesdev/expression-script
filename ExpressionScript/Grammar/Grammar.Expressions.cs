@@ -22,7 +22,7 @@ namespace ExpressionScript
 
         public static Parser<Expression> ExpressionTree()
         {
-            return NonAssignmentExpression();
+            return NonAssignmentExpression().Or(LambdaExpression());
         }
 
         public static Parser<Expression> NonAssignmentExpression()
@@ -257,6 +257,30 @@ namespace ExpressionScript
             return from keyword in Token(String("default"))
                    from type in Type().BracketedBy(Token(Char('(')), Token(Char(')')))
                    select Expression.Default(type);
+        }
+
+        public static Parser<Expression> LambdaExpression()
+        {
+            return from parameters in ExplicitAnonymousFunctionSignature()
+                       .SelectState((parameters, state) => state.AddVariable(parameters))
+                   from arrow in Token(String("=>"))
+                   from body in ExpressionTree()
+                   select Expression.Lambda(body, parameters);
+        }
+
+        public static Parser<IEnumerable<ParameterExpression>> ExplicitAnonymousFunctionSignature()
+        {
+            return from o in Token(Char('('))
+                   from parameters in ExplicitAnonymousFunctionParameter().ManySeparatedBy(Token(Char(',')))
+                   from c in Token(Char(')'))
+                   select parameters;
+        }
+
+        public static Parser<ParameterExpression> ExplicitAnonymousFunctionParameter()
+        {
+            return from type in Token(Type())
+                   from identifier in Token(Identifier())
+                   select Expression.Parameter(type, identifier);
         }
     }
 }
