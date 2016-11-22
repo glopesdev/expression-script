@@ -19,11 +19,12 @@ namespace ExpressionScript
 
         public static Parser<Expression> Block()
         {
-            return from o in Token(Char('{'))
-                   from statements in Statement().Many()
-                   from c in Token(Char('}'))
-                   from state in State()
-                   select Expression.Block(state.GetScopeVariables(), statements);
+            return Token(Char('{')).WithState(
+                (o, state) => state.CreateScope(),
+                o => from statements in Statement().Many()
+                     from c in Token(Char('}'))
+                     from state in State()
+                     select Expression.Block(state.GetScopeVariables(), statements));
         }
 
         public static Parser<Expression> EmptyStatement()
