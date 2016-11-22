@@ -17,7 +17,8 @@ namespace ExpressionScript
                 Integer(),
                 Real(),
                 Character(),
-                StringLiteral()));
+                StringLiteral(),
+                NullLiteral()));
         }
 
         public static Parser<ConstantExpression> Boolean()
@@ -102,6 +103,13 @@ namespace ExpressionScript
                 RegularStringLiteral(),
                 VerbatimStringLiteral())
                 .Select(s => Expression.Constant(s));
+        }
+
+        public static Parser<ConstantExpression> NullLiteral()
+        {
+            return from keyword in Token(String("null"))
+                   from state in State()
+                   select Expression.Constant(null, state.ExpectedType);
         }
     }
 }

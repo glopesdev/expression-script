@@ -10,6 +10,7 @@ namespace ExpressionScript
     public class ParserContext
     {
         public static readonly ParserContext Empty = new ParserContext(
+            null,
             Map<string, Type>.Empty,
             Map<string, ParameterExpression>.Empty,
             ImmutableStack<ParameterExpression>.Empty);
@@ -19,6 +20,7 @@ namespace ExpressionScript
         readonly IImmutableStack<ParameterExpression> variables;
 
         private ParserContext(
+            Type expectedType,
             Map<string, Type> types, Map<string,
             ParameterExpression> nameTable,
             IImmutableStack<ParameterExpression> variables)
@@ -26,12 +28,15 @@ namespace ExpressionScript
             this.types = types;
             this.nameTable = nameTable;
             this.variables = variables;
+            ExpectedType = expectedType;
         }
+
+        public Type ExpectedType { get; private set; }
 
         public ParserContext CreateScope()
         {
             if (variables == ImmutableStack<ParameterExpression>.Empty) return this;
-            else return new ParserContext(types, nameTable, ImmutableStack<ParameterExpression>.Empty);
+            else return new ParserContext(ExpectedType, types, nameTable, ImmutableStack<ParameterExpression>.Empty);
         }
 
         public ParserContext CreateScope(IEnumerable<ParameterExpression> parameters)
@@ -42,17 +47,22 @@ namespace ExpressionScript
                 nameTable = nameTable.Add(parameter.Name, parameter);
             }
 
-            return new ParserContext(types, nameTable, ImmutableStack<ParameterExpression>.Empty);
+            return new ParserContext(ExpectedType, types, nameTable, ImmutableStack<ParameterExpression>.Empty);
         }
 
         public ParserContext AddType(string name, Type type)
         {
-            return new ParserContext(types.Add(name, type), nameTable, variables);
+            return new ParserContext(ExpectedType, types.Add(name, type), nameTable, variables);
         }
 
         public ParserContext AddVariable(ParameterExpression variable)
         {
-            return new ParserContext(types, nameTable.Add(variable.Name, variable), variables.Push(variable));
+            return new ParserContext(ExpectedType, types, nameTable.Add(variable.Name, variable), variables.Push(variable));
+        }
+
+        public ParserContext SetExpectedType(Type expectedType)
+        {
+            return new ParserContext(expectedType, types, nameTable, variables);
         }
 
         public Type GetType(string name)

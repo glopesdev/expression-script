@@ -52,11 +52,12 @@ namespace ExpressionScript
             return (from identifier in Token(Identifier())
                     select Expression.Variable(type, identifier))
                     .WithState((variable, state) => state.AddVariable(variable))
-                    .SelectMany(variable =>
-                        Optional<Expression>(from e in Token(Char('='))
-                                             from initializer in LocalVariableInitializer()
-                                             select Expression.Assign(variable, initializer),
-                                             variable));
+                    .WithState(
+                        (variable, state) => state.SetExpectedType(type),
+                        variable => Optional<Expression>(from e in Token(Char('='))
+                                                         from initializer in LocalVariableInitializer()
+                                                         select Expression.Assign(variable, initializer),
+                                                         variable));
         }
 
         public static Parser<Expression> ImplicitlyTypedLocalVariableDeclarator()

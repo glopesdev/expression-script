@@ -265,7 +265,8 @@ namespace ExpressionScript
                 (parameters, state) => state.CreateScope(parameters),
                 parameters => from arrow in Token(String("=>"))
                               from body in ExpressionTree()
-                              select Expression.Lambda(body, parameters));
+                              from state in State()
+                              select Expression.Lambda(state.ExpectedType, body, parameters));
         }
 
         public static Parser<IEnumerable<ParameterExpression>> ExplicitAnonymousFunctionSignature()
