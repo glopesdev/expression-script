@@ -68,8 +68,9 @@ namespace ExpressionScript
             return (from nameCandidate in TypeNameCandidates()
                     from typeArguments in TypeArgumentList().Or(Return(Enumerable.Empty<Type>()))
                                                             .Select(x => x.ToArray())
+                    from state in State()
                     let suffix = typeArguments.Length > 0 ? "`" + typeArguments.Length : string.Empty
-                    let type = System.Type.GetType(nameCandidate + suffix)
+                    let type = state.TypeResolver.GetType(nameCandidate + suffix)
                     where type != null
                     select type.IsGenericType ? type.MakeGenericType(typeArguments) : type)
                     .First();

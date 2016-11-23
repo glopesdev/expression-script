@@ -46,6 +46,7 @@
     <Compile Include="Grammar\Grammar.Primitives.cs" />
     <Compile Include="Grammar\Grammar.Statements.cs" />
     <Compile Include="Input.cs" />
+    <Compile Include="ITypeResolver.cs" />
     <Compile Include="Map.cs" />
     <Compile Include="ParserContext.cs" />
     <Compile Include="Result.cs" />
@@ -56,6 +57,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ResultValueComparer.cs" />
     <Compile Include="ImmutableStack.cs" />
+    <Compile Include="TypeResolver.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
