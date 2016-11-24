@@ -133,8 +133,8 @@ namespace ExpressionScript
         {
             return Or(
                 Literal(),
-                StaticMemberAccess(),
                 SimpleName(),
+                StaticMemberAccess(),
                 ParenthesizedExpression(),
                 TypeofExpression(),
                 DefaultValueExpression())
@@ -159,7 +159,9 @@ namespace ExpressionScript
         {
             return from identifier in Token(Identifier())
                    from state in State()
-                   select state.GetVariable(identifier);
+                   let variable = state.GetVariable(identifier)
+                   where variable != null
+                   select variable;
         }
 
         public static Parser<Expression> ParenthesizedExpression()

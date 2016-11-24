@@ -63,7 +63,9 @@ namespace ExpressionScript
 
         public ParameterExpression GetVariable(string name)
         {
-            return nameTable[name];
+            ParameterExpression variable;
+            nameTable.TryGetValue(name, out variable);
+            return variable;
         }
 
         public IEnumerable<ParameterExpression> GetScopeVariables()
