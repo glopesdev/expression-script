@@ -8,7 +8,7 @@ namespace ExpressionScript
 {
     public class TypeResolver : ITypeResolver
     {
-        public static TypeResolver Default = new TypeResolver();
+        public static readonly TypeResolver Default = new TypeResolver();
 
         private TypeResolver()
         {
