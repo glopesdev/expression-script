@@ -37,6 +37,14 @@ namespace ExpressionScript.Tests
         }
 
         [TestMethod]
+        public void Many_AtLeastOneAndAtMostZero_ReturnsFailure()
+        {
+            var parser = Parser.Char().Many(1, 0);
+            var result = parser.Parse(string.Empty);
+            Assert.AreEqual(null, result);
+        }
+
+        [TestMethod]
         public void Many_AtMostOne_ReturnsSingletonString()
         {
             var parser = Parser.Char().Many(0, 1);
@@ -80,6 +88,38 @@ namespace ExpressionScript.Tests
                                                .ManySeparatedBy(Parser.Char(','), (xs, x) => xs + x);
             var result = parser.Parse(ManySeparatedByInput);
             Assert.AreEqual(ndigits * (ndigits + 1) / 2, result.Value);
+        }
+
+        [TestMethod]
+        public void ManySeparatedBy_AtMostOne_ReturnsSingletonString()
+        {
+            var parser = Parser.Char().ManySeparatedBy(Parser.Char(','), 0, 1);
+            var result = parser.Parse(ManySeparatedByInput);
+            Assert.AreEqual(1, result.Value.Length);
+        }
+
+        [TestMethod]
+        public void ManySeparatedBy_AtLeastOne_ReturnsString()
+        {
+            var parser = Parser.Char().ManySeparatedBy(Parser.Char(','), 1);
+            var result = parser.Parse(ManySeparatedByInput);
+            Assert.AreEqual(ManySeparatedByInput.Split(',').Length, result.Value.Length);
+        }
+
+        [TestMethod]
+        public void ManySeparatedBy_AtLeastOneAndAtMostZero_ReturnsFailure()
+        {
+            var parser = Parser.Char().ManySeparatedBy(Parser.Char(','), 1, 0);
+            var result = parser.Parse(ManySeparatedByInput);
+            Assert.AreEqual(null, result);
+        }
+
+        [TestMethod]
+        public void ManySeparatedBy_AtLeastOneAndAtMostOne_ReturnsSingletonString()
+        {
+            var parser = Parser.Char().ManySeparatedBy(Parser.Char(','), 1, 1);
+            var result = parser.Parse(ManySeparatedByInput);
+            Assert.AreEqual(1, result.Value.Length);
         }
     }
 }

@@ -175,15 +175,16 @@ namespace ExpressionScript
 
         static IEnumerable<IResult<TAccumulate>> ManyEnumerable<TValue, TAccumulate>(
             Parser<TValue> parser,
-            int min, int? max,
+            int min,
             TAccumulate seed,
+            Func<TAccumulate, int, bool> condition,
             Func<TAccumulate, TValue, TAccumulate> accumulator,
             TInput input,
             int index)
         {
-            if (max == 0)
+            if (condition(seed, index))
             {
-                yield return new Result<TAccumulate>(seed, input);
+                if (min <= index) yield return new Result<TAccumulate>(seed, input);
                 yield break;
             }
 
@@ -205,7 +206,7 @@ namespace ExpressionScript
                     terminal = false;
                     var count = state.Count + 1;
                     var accumulate = accumulator(state.Accumulate, result.Value);
-                    if (count >= max)
+                    if (condition(accumulate, count))
                     {
                         yield return new Result<TAccumulate>(accumulate, result.Tail);
                         continue;
@@ -228,12 +229,23 @@ namespace ExpressionScript
 
         static Parser<TAccumulate> ManyIndexed<TValue, TAccumulate>(
             Parser<TValue> parser,
-            int min, int? max,
+            int min,
             TAccumulate seed,
+            Func<TAccumulate, int, bool> condition,
             Func<TAccumulate, TValue, TAccumulate> accumulator,
             int index)
         {
-            return input => ManyEnumerable(parser, min, max, seed, accumulator, input, index);
+            return input => ManyEnumerable(parser, min, seed, condition, accumulator, input, index);
+        }
+
+        public static Parser<TAccumulate> Many<TValue, TAccumulate>(
+            this Parser<TValue> parser,
+            int min,
+            TAccumulate seed,
+            Func<TAccumulate, int, bool> condition,
+            Func<TAccumulate, TValue, TAccumulate> accumulator)
+        {
+            return ManyIndexed(parser, min, seed, condition, accumulator, 0);
         }
 
         public static Parser<TAccumulate> Many<TValue, TAccumulate>(
@@ -242,7 +254,7 @@ namespace ExpressionScript
             TAccumulate seed,
             Func<TAccumulate, TValue, TAccumulate> accumulator)
         {
-            return ManyIndexed(parser, min, max, seed, accumulator, 0);
+            return ManyIndexed(parser, min, seed, (acc, i) => i >= max, accumulator, 0);
         }
 
         public static Parser<TAccumulate> Many<TValue, TAccumulate>(
@@ -322,21 +334,38 @@ namespace ExpressionScript
         public static Parser<TAccumulate> ManySeparatedBy<TValue, TSeparator, TAccumulate>(
             this Parser<TValue> parser,
             Parser<TSeparator> separator,
-            int min, int? max,
+            int min,
             TAccumulate seed,
+            Func<TAccumulate, int, bool> condition,
             Func<TAccumulate, TValue, TAccumulate> accumulator)
         {
-            if (max < 1) return Empty<TAccumulate>();
+            if (condition(seed, 0))
+            {
+                if (min == 0) return Return(seed);
+                else return Empty<TAccumulate>();
+            }
+
             var result = from x in parser
                          from xs in
                              ManyIndexed(from s in separator
                                          from y in parser
                                          select y,
-                                         min, max,
-                                         accumulator(seed, x), accumulator, 1)
+                                         min, accumulator(seed, x),
+                                         condition,
+                                         accumulator, 1)
                          select xs;
             if (min < 1) return result.Or(Return(seed));
             return result;
+        }
+
+        public static Parser<TAccumulate> ManySeparatedBy<TValue, TSeparator, TAccumulate>(
+            this Parser<TValue> parser,
+            Parser<TSeparator> separator,
+            int min, int? max,
+            TAccumulate seed,
+            Func<TAccumulate, TValue, TAccumulate> accumulator)
+        {
+            return ManySeparatedBy(parser, separator, min, seed, (acc, i) => i >= max, accumulator);
         }
 
         public static Parser<TAccumulate> ManySeparatedBy<TValue, TSeparator, TAccumulate>(
