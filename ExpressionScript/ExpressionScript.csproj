@@ -49,6 +49,8 @@
     <Compile Include="ITypeResolver.cs" />
     <Compile Include="Map.cs" />
     <Compile Include="ParserContext.cs" />
+    <Compile Include="QualifiedType.cs" />
+    <Compile Include="StaticAccess.cs" />
     <Compile Include="Result.cs" />
     <Compile Include="Parser.cs" />
     <Compile Include="Parser.Monad.cs" />

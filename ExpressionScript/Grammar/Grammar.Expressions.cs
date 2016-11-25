@@ -206,18 +206,24 @@ namespace ExpressionScript
 
         public static Parser<Expression> StaticMemberAccess()
         {
-            return from type in Token(Type())
-                   from c in Token(Char('.'))
-                   from identifier in Identifier()
-                   from memberAccess in Or(StaticInvocationExpression(type, identifier),
-                                           StaticMemberAccessExpression(type, identifier))
+            return from type in Token(OuterType())
+                   from staticMember in StaticAccess(type)
+                   where staticMember.Identifier != null
+                   from memberAccess in Or(StaticInvocationExpression(staticMember),
+                                           Defer(() => StaticMemberAccessExpression(staticMember)))
                    select memberAccess;
         }
 
-        static Parser<Expression> StaticMemberAccessExpression(Type type, string propertyOrFieldName)
+        static Parser<Expression> StaticMemberAccessExpression(StaticAccess staticMember)
         {
-            var propertyOrField = type.GetMember(propertyOrFieldName, BindingFlags.Static | BindingFlags.Public);
-            if (propertyOrField.Length != 1)
+            var identifier = staticMember.Identifier.Value;
+            var propertyOrField = staticMember.Type.GetMember(identifier.Name, BindingFlags.Static | BindingFlags.Public | BindingFlags.FlattenHierarchy);
+            if (propertyOrField.Length == 0)
+            {
+                throw new ArgumentException("The specified member name was not found.", "propertyOrFieldName");
+            }
+
+            if (propertyOrField.Length > 1)
             {
                 throw new ArgumentException("The specified member name is ambiguous.", "propertyOrFieldName");
             }
@@ -225,12 +231,13 @@ namespace ExpressionScript
             return Return(Expression.MakeMemberAccess(null, propertyOrField[0]));
         }
 
-        static Parser<Expression> StaticInvocationExpression(Type type, string methodName)
+        static Parser<Expression> StaticInvocationExpression(StaticAccess staticMember)
         {
             return from o in Token(Char('('))
                    from arguments in ArgumentList()
                    from c in Token(Char(')'))
-                   select Expression.Call(type, methodName, null, arguments.ToArray());
+                   let identifier = staticMember.Identifier.Value
+                   select Expression.Call(staticMember.Type, identifier.Name, identifier.TypeArguments, arguments.ToArray());
         }
 
         public static Parser<Expression> MemberAccess(this Parser<Expression> parser)

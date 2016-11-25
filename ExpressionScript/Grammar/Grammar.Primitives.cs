@@ -63,42 +63,47 @@ namespace ExpressionScript
             return Char().Except('/', '*');
         }
 
-        public static Parser<Type> TypeName()
+        static Parser<Type> QualifiedTypeName()
         {
-            return (from nameCandidate in TypeNameCandidates()
-                    from typeArguments in TypeArgumentList().Or(Return(Enumerable.Empty<Type>()))
-                                                            .Select(x => x.ToArray())
-                    from state in State()
-                    let suffix = typeArguments.Length > 0 ? "`" + typeArguments.Length : string.Empty
-                    let type = state.TypeResolver.GetType(nameCandidate + suffix)
-                    where type != null
-                    select type.IsGenericType ? type.MakeGenericType(typeArguments) : type)
-                    .First();
+            return from state in State()
+                   from qualifiedType in GenericIdentifier().ManySeparatedBy(
+                       Token(Char('.')), 1,
+                       default(QualifiedType),
+                       (accumulate, i) => accumulate.Type != null,
+                       (accumulate, identifier) => accumulate.Add(identifier, state.TypeResolver))
+                   where qualifiedType.Type != null
+                   select qualifiedType.Type;
         }
 
-        static Parser<string> TypeNameCandidates()
+        static Parser<StaticAccess> StaticAccess(Type type)
         {
-            return input => Identifier().ManySeparatedBy(Token(Char('.')), 1)(input).SelectMany(
-                   result => TypeNameCandidatesEnumerable(input, result));
+            return from c in Token(Char('.'))
+                   from staticAccess in GenericIdentifier().ManySeparatedBy(
+                       Token(Char('.')), 1,
+                       new StaticAccess(type, null),
+                       (accumulate, i) => accumulate.Identifier != null,
+                       (accumulate, identifier) => accumulate.Add(identifier))
+                   select staticAccess;
         }
 
-        static IEnumerable<IResult<string>> TypeNameCandidatesEnumerable(Input<ParserContext> input, IResult<IEnumerable<string>> result)
+        static Parser<Type> NestedTypeName(Type outerType)
         {
-            var nameParts = result.Value.ToArray();
-            for (int i = 0; i < nameParts.Length; i++)
-            {
-                var name = string.Join(".", nameParts, 0, nameParts.Length - i);
-                var remainder = new Input<ParserContext>(input.Source, input.Offset + name.Length, input.State);
-                yield return new Result<string>(name, remainder);
-            }
+            return from nestedType in StaticAccess(outerType)
+                   where nestedType.Identifier == null
+                   select nestedType.Type;
         }
 
-        public static Parser<Type> Type()
+        static Parser<Type> OuterType()
         {
             return Or(
                 ValueType(),
                 ReferenceType(),
-                TypeName());
+                QualifiedTypeName());
+        }
+
+        public static Parser<Type> Type()
+        {
+            return OuterType().SelectMany(type => Optional(NestedTypeName(type), type));
         }
 
         public static Parser<Type> ValueType()
