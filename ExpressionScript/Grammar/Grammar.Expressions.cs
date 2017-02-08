@@ -300,7 +300,7 @@ namespace ExpressionScript
 
         public static Parser<Expression> LambdaExpression()
         {
-            return ExplicitAnonymousFunctionSignature().WithState(
+            return ExplicitAnonymousFunctionSignature().Or(ImplicitAnonymousFunctionSignature()).WithState(
                 (parameters, state) => state.CreateScope(parameters),
                 parameters => from arrow in Token(String("=>"))
                               from body in ExpressionTree()
@@ -321,6 +321,29 @@ namespace ExpressionScript
             return from type in Token(Type())
                    from identifier in Token(Identifier())
                    select Expression.Parameter(type, identifier);
+        }
+
+        public static Parser<IEnumerable<ParameterExpression>> ImplicitAnonymousFunctionSignature()
+        {
+            return from o in Token(Char('(')).Optional()
+                   from state in State()
+                   where state.ExpectedType != null && state.ExpectedType.IsSubclassOf(typeof(Delegate))
+                   let expectedParameters = state.ExpectedType.GetMethod("Invoke").GetParameters()
+                   where o != default(char) || expectedParameters.Length == 1
+                   from parameters in ImplicitAnonymousFunctionParameters(expectedParameters)
+                   from c in o == default(char) ? Return(default(char)) : Token(Char(')'))
+                   select parameters;
+        }
+
+        public static Parser<IEnumerable<ParameterExpression>> ImplicitAnonymousFunctionParameters(ParameterInfo[] expectedParameters)
+        {
+            return Token(Identifier()).ManySeparatedBy(
+                Token(Char(',')),
+                expectedParameters.Length,
+                new { n = 0, xs = Enumerable.Empty<ParameterExpression>() },
+                (acc, i) => i >= expectedParameters.Length,
+                (acc, x) => new { n = acc.n + 1, xs = acc.xs.Concat(Expression.Parameter(expectedParameters[acc.n].ParameterType, x)) })
+                .Select(acc => acc.xs);
         }
     }
 }
