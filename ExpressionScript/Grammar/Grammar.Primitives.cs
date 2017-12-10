@@ -205,7 +205,7 @@ namespace ExpressionScript
                 "delegate", "do", "double", "else", "enum",
                 "event", "explicit", "extern", "false", "finally",
                 "fixed", "float", "for", "foreach", "goto",
-                "if", "implicit", "in", "int", "interface",
+                "if", "implicit", "int", "in", "interface",
                 "internal", "is", "lock", "long", "namespace",
                 "new", "null", "object", "operator", "out",
                 "override", "params", "private", "protected", "public",

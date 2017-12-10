@@ -5,3 +5,7 @@ ExpressionScript/bin
 ExpressionScript/obj
 ExpressionScript.Tests/bin
 ExpressionScript.Tests/obj
+ExpressionScript.Play/bin
+ExpressionScript.Play/obj
+ExpressionScript.Playground/bin
+ExpressionScript.Playground/obj
