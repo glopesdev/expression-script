@@ -1,0 +1,7 @@
+
+.suo
+packages/
+ExpressionScript/bin
+ExpressionScript/obj
+ExpressionScript.Tests/bin
+ExpressionScript.Tests/obj
